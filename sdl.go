@@ -1,4 +1,4 @@
-// Package sdl provides simplified bindings for the SDL library, version 2.0.
+// Package sdl provides simplified bindings for the SDL library version 2.0.
 package sdl
 
 // #cgo pkg-config: sdl2
