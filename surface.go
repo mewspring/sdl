@@ -8,7 +8,8 @@ import (
 	"encoding/binary"
 	"image"
 	"image/draw"
-	"log"
+	//"log"
+	"reflect"
 	"unsafe"
 
 	"github.com/mewkiz/pkg/imgutil"
@@ -68,24 +69,54 @@ func LoadSurface(imgPath string) (s *Surface, err error) {
 // Note: The Free method of the surface should be called when finished using it.
 func GetSurface(img image.Image) (s *Surface, err error) {
 	rect := img.Bounds()
+	width := rect.Dx()
+	height := rect.Dy()
+	s, err = NewSurface(width, height)
+	if err != nil {
+		return nil, err
+	}
 	var pix []uint8
 	switch i := img.(type) {
 	case *image.NRGBA:
 		pix = i.Pix
 	case *image.RGBA:
+		// TODO(u): Do we need normalize the image since its stored as
+		// premultiplied alpha. If so divide the color values by the alpha value.
+		// An alternative is to use the default fallback. If so benchmark first.
 		pix = i.Pix
 	default:
-		log.Printf("sdl.GetSurface: using draw.Draw fallback for image type %T.\n", img)
-		fallback := image.NewNRGBA(rect)
-		draw.Draw(fallback, rect, img, image.ZP, draw.Src)
-		pix = fallback.Pix
-	}
-	s, err = NewSurface(rect.Dx(), rect.Dy())
-	if err != nil {
-		return nil, err
+		copyPixels(s, img)
+		return s, nil
 	}
 	C.memcpy(s.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
 	return s, nil
+}
+
+// copyPixels provides a draw.Draw fallback for arbitrary image formats. It
+// draws directly to the memory of the surface using unsafe.
+//
+// Note: The surface must be a valid surface created with NewSurface.
+func copyPixels(s *Surface, img image.Image) {
+	// stride is the size in bytes of each line. The size of an individual
+	// pixel is 4 bytes.
+	stride := s.Width * 4
+	// size is the total size in bytes of the pixel data.
+	size := s.Height * stride
+	sh := reflect.SliceHeader{
+		Data: uintptr(s.s.pixels),
+		Len:  size,
+		Cap:  size,
+	}
+	// dstPix is a byte slice which points to the memory of the surface's pixels.
+	dstPix := *(*[]byte)(unsafe.Pointer(&sh))
+
+	dstRect := image.Rect(0, 0, s.Width, s.Height)
+	dst := &image.NRGBA{
+		Pix:    dstPix,
+		Stride: stride,
+		Rect:   dstRect,
+	}
+	draw.Draw(dst, dstRect, img, image.ZP, draw.Over)
 }
 
 // Free frees the surface.
