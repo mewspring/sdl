@@ -26,7 +26,10 @@ type Surface struct {
 //
 // Note: The Free method of the surface should be called when finished using it.
 func NewSurface(width, height int) (s *Surface, err error) {
-	s = new(Surface)
+	s = &Surface{
+		Width:  width,
+		Height: height,
+	}
 	// Red, green blue and alpha masks.
 	var r, g, b, a C.Uint32
 	switch nativeByteOrder {
