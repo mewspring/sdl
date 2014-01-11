@@ -7,9 +7,9 @@ subject to change. The documentation can be inaccurate.
 sdl
 ===
 
-This package provides simplified bindings for the [SDL][] library version 2.0.
+This package provides simplified bindings for the [SDL][libsdl] library version 2.0.
 
-[SDL]: http://www.libsdl.org/
+[libsdl]: http://www.libsdl.org/
 
 Documentation
 -------------
@@ -23,7 +23,7 @@ Documentation provided by GoDoc.
 Installation
 ------------
 
-Install the [SDL][] library version 2.0 and run:
+Install the [SDL][libsdl] library version 2.0 and run:
 
 	go get github.com/mewmew/sdl
 
