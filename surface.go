@@ -8,7 +8,6 @@ import (
 	"encoding/binary"
 	"image"
 	"image/draw"
-	//"log"
 	"reflect"
 	"unsafe"
 

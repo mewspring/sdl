@@ -7,7 +7,8 @@ subject to change. The documentation can be inaccurate.
 sdl
 ===
 
-This package provides simplified bindings for the [SDL][libsdl] library version 2.0.
+This package provides simplified bindings for the [SDL][libsdl] library version
+2.0.
 
 [libsdl]: http://www.libsdl.org/
 
