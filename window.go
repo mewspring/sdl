@@ -24,6 +24,8 @@ type Window struct {
 	w *C.SDL_Window
 }
 
+// TODO(u): make it possible to create resizeable and fullscreen windows.
+
 // OpenWindow opens a new window of the specified dimensions.
 //
 // Note: The Close method of the window should be called when finished using it.
