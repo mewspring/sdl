@@ -22,8 +22,8 @@ func goButton(index C.Uint8) (button we.Button) {
 	case C.SDL_BUTTON_X2:
 		return we.Button5
 	}
-	// All unknown SDL mouse buttons are mapped to we.Button6.
-	return we.Button6
+	// All unknown SDL mouse buttons are mapped to buttons above we.Button5.
+	return we.Button5 + we.Button(index-C.SDL_BUTTON_X2)
 }
 
 // goButtonFromState returns the corresponding we.Button for the provided SDL
@@ -46,6 +46,12 @@ func goButtonFromState(state C.Uint32) (button we.Button) {
 	if state&C.SDL_BUTTON_X2MASK != 0 {
 		return we.Button5
 	}
-	// All unknown SDL mouse buttons are mapped to we.Button6.
-	return we.Button6
+	// All unknown SDL mouse buttons are mapped to buttons above we.Button5.
+	for index := uint(6); index < 32; index++ {
+		mask := C.Uint32(1 << (index - 1))
+		if state&mask != 0 {
+			return we.Button5 + we.Button(index-C.SDL_BUTTON_X2)
+		}
+	}
+	panic("goButtonFromState: invalid mouse button state: 0.")
 }
