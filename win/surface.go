@@ -1,4 +1,4 @@
-package sdl
+package win
 
 // #cgo pkg-config: sdl2
 // #include <SDL2/SDL.h>
@@ -14,19 +14,19 @@ import (
 	"github.com/mewkiz/pkg/imgutil"
 )
 
-// A Surface is a collection of pixels.
-type Surface struct {
-	// Width and height of the surface.
+// An Image is a collection of pixels.
+type Image struct {
+	// Width and height of the image.
 	Width, Height int
 	// C surface pointer.
 	s *C.SDL_Surface
 }
 
-// NewSurface returns a new surface of the specified dimensions.
+// NewImage returns a new image of the specified dimensions.
 //
-// Note: The Free method of the surface should be called when finished using it.
-func NewSurface(width, height int) (s *Surface, err error) {
-	s = &Surface{
+// Note: The Free method of the image should be called when finished using it.
+func NewImage(width, height int) (img *Image, err error) {
+	img = &Image{
 		Width:  width,
 		Height: height,
 	}
@@ -44,32 +44,32 @@ func NewSurface(width, height int) (s *Surface, err error) {
 		b = 0x0000FF00
 		a = 0x000000FF
 	}
-	s.s = C.SDL_CreateRGBSurface(0, C.int(width), C.int(height), 32, r, g, b, a)
-	if s.s == nil {
+	img.s = C.SDL_CreateRGBSurface(0, C.int(width), C.int(height), 32, r, g, b, a)
+	if img.s == nil {
 		return nil, getError()
 	}
-	return s, nil
+	return img, nil
 }
 
-// LoadSurface loads the provided image and returns a surface containing its
-// pixels.
+// LoadImage loads and returns the provided image.
 //
-// Note: The Free method of the surface should be called when finished using it.
-func LoadSurface(imgPath string) (s *Surface, err error) {
+// Note: The Free method of the image should be called when finished using it.
+func LoadImage(imgPath string) (img *Image, err error) {
 	img, err := imgutil.ReadFile(imgPath)
 	if err != nil {
 		return nil, err
 	}
-	return GetSurface(img)
+	return ConvertImage(img)
 }
 
-// GetSurface returns a surface containing the pixels of the provided image.
+// ConvertImage converts the provided image to the standard image format of this
+// library.
 //
-// Note: The Free method of the surface should be called when finished using it.
-func GetSurface(img image.Image) (s *Surface, err error) {
+// Note: The Free method of the image should be called when finished using it.
+func ConvertImage(img image.Image) (img *Image, err error) {
 	rect := img.Bounds()
 	width, height := rect.Dx(), rect.Dy()
-	s, err = NewSurface(width, height)
+	img, err = NewImage(width, height)
 	if err != nil {
 		return nil, err
 	}
@@ -83,18 +83,18 @@ func GetSurface(img image.Image) (s *Surface, err error) {
 		// An alternative is to use the default fallback. If so benchmark first.
 		pix = i.Pix
 	default:
-		copyPixels(s, img)
-		return s, nil
+		copyPixels(img, img)
+		return img, nil
 	}
-	C.memcpy(s.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
-	return s, nil
+	C.memcpy(img.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
+	return img, nil
 }
 
 // copyPixels provides a draw.Draw fallback for arbitrary image formats. It
-// draws directly to the memory of the surface using unsafe.
+// draws directly to the memory of the SDL surface using unsafe.
 //
-// Note: The surface must be a valid surface created with NewSurface.
-func copyPixels(dst *Surface, src image.Image) {
+// Note: The dst image must be a valid SDL surface created with NewImage.
+func copyPixels(dst *Image, src image.Image) {
 	// stride is the size in bytes of each line. The size of an individual
 	// pixel is 4 bytes.
 	stride := dst.Width * 4
@@ -117,21 +117,21 @@ func copyPixels(dst *Surface, src image.Image) {
 	draw.Draw(dstImg, dstRect, src, image.ZP, draw.Over)
 }
 
-// Free frees the surface.
-func (s *Surface) Free() {
-	C.SDL_FreeSurface(s.s)
+// Free frees the image.
+func (img *Image) Free() {
+	C.SDL_FreeSurface(img.s)
 }
 
-// Draw draws the entire src surface onto the dst surface starting at the
+// Draw draws the entire src image onto the dst image starting at the
 // destination point dp.
-func (src *Surface) Draw(dst *Surface, dp image.Point) (err error) {
+func (dst *Image) Draw(dp image.Point, src *Image) (err error) {
 	dr := image.Rect(dp.X, dp.Y, dp.X+src.Width, dp.Y+src.Height)
-	return src.DrawRect(dst, dr, image.ZP)
+	return dst.DrawRect(dr, src, image.ZP)
 }
 
-// DrawRect fills the destination rectangle dr of the dst surface with
-// corresponding pixels from the src surface starting at the source point sp.
-func (src *Surface) DrawRect(dst *Surface, dr image.Rectangle, sp image.Point) (err error) {
+// DrawRect fills the destination rectangle dr of the dst image with
+// corresponding pixels from the src image starting at the source point sp.
+func (dst *Image) DrawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
 	sr := image.Rect(sp.X, sp.Y, sp.X+dr.Dx(), sp.Y+dr.Dy())
 	srcRect := cRect(sr)
 	dstRect := cRect(dr)

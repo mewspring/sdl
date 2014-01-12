@@ -1,7 +1,7 @@
 // TODO(u): install a default event filter?
 // TODO(u): implement a SetEventFilter function?
 
-package sdl
+package win
 
 // #cgo pkg-config: sdl2
 // #include <SDL2/SDL.h>

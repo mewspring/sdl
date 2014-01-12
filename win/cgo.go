@@ -1,4 +1,4 @@
-package sdl
+package win
 
 // #cgo pkg-config: sdl2
 // #include <SDL2/SDL.h>
@@ -11,15 +11,6 @@ import (
 	"log"
 	"unsafe"
 )
-
-// goRect converts a C SDL_Rect to a Go image.Rectangle.
-func goRect(cRect C.SDL_Rect) (rect image.Rectangle) {
-	x := int(cRect.x)
-	y := int(cRect.y)
-	w := int(cRect.w)
-	h := int(cRect.h)
-	return image.Rect(x, y, x+w, y+h)
-}
 
 // cRect converts a Go image.Rectangle to a C SDL_Rect.
 func cRect(rect image.Rectangle) (cRect *C.SDL_Rect) {
@@ -54,7 +45,7 @@ func initNativeByteOrder() (err error) {
 		nativeByteOrder = binary.LittleEndian
 		return nil
 	}
-	return errors.New("sdl.initNativeByteOrder: unable to determine native byte order")
+	return errors.New("win.initNativeByteOrder: unable to determine native byte order")
 }
 
 func init() {

@@ -1,4 +1,4 @@
-package sdl
+package win
 
 // #include <SDL2/SDL.h>
 import "C"

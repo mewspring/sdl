@@ -4,11 +4,17 @@ WIP
 This project is a *work in progress*. The implementation is *incomplete* and
 subject to change. The documentation can be inaccurate.
 
-sdl
+win
 ===
 
-This package provides simplified bindings for the [SDL][libsdl] library version
-2.0.
+This package provides the core functionality required for window creation,
+drawing and event handling. The window events are defined in a dedicated package
+located at:
+	github.com/mewmew/we
+
+The library uses a small subset of the features provided by [SDL][libsdl]
+version 2.0. Support for multiple windows has intentionally been left out to
+simplify the API.
 
 [libsdl]: http://www.libsdl.org/
 
@@ -17,16 +23,16 @@ Documentation
 
 Documentation provided by GoDoc.
 
-- [sdl][]: provides simplified bindings for the SDL library, version 2.0.
+- [sdl/win][]: handles window creation, drawing and event handling.
 
-[sdl]: http://godoc.org/github.com/mewmew/sdl
+[sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
 
 Installation
 ------------
 
 Install the [SDL][libsdl] library version 2.0 and run:
 
-	go get github.com/mewmew/sdl
+	go get github.com/mewmew/sdl/win
 
 Examples
 --------

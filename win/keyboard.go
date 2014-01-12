@@ -1,4 +1,4 @@
-package sdl
+package win
 
 // #cgo pkg-config: sdl2
 // #include <SDL2/SDL.h>
