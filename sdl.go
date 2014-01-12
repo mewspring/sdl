@@ -10,8 +10,8 @@ type InitFlag uint32
 
 // SDL subsystem init flags.
 const (
-	InitVideo       = InitFlag(C.SDL_INIT_VIDEO)
-	InitNoParachute = InitFlag(C.SDL_INIT_NOPARACHUTE) // Don't catch fatal signals.
+	InitVideo       InitFlag = C.SDL_INIT_VIDEO
+	InitNoParachute InitFlag = C.SDL_INIT_NOPARACHUTE // Don't catch fatal signals.
 )
 
 // TODO(u): Add support for audio.

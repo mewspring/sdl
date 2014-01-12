@@ -24,9 +24,9 @@ type WindowFlag uint32
 // Window flags.
 const (
 	// The Resizeable flag states that the window can be resized.
-	Resizeable = WindowFlag(C.SDL_WINDOW_RESIZABLE)
+	Resizeable WindowFlag = C.SDL_WINDOW_RESIZABLE
 	// The FullScreen flag states that the window is in full screen mode.
-	FullScreen = WindowFlag(C.SDL_WINDOW_FULLSCREEN)
+	FullScreen WindowFlag = C.SDL_WINDOW_FULLSCREEN
 )
 
 // A Window represents a single graphics window.
