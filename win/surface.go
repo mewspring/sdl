@@ -55,26 +55,26 @@ func NewImage(width, height int) (img *Image, err error) {
 //
 // Note: The Free method of the image should be called when finished using it.
 func LoadImage(imgPath string) (img *Image, err error) {
-	img, err := imgutil.ReadFile(imgPath)
+	src, err := imgutil.ReadFile(imgPath)
 	if err != nil {
 		return nil, err
 	}
-	return ConvertImage(img)
+	return ConvertImage(src)
 }
 
 // ConvertImage converts the provided image to the standard image format of this
 // library.
 //
 // Note: The Free method of the image should be called when finished using it.
-func ConvertImage(img image.Image) (img *Image, err error) {
-	rect := img.Bounds()
+func ConvertImage(src image.Image) (img *Image, err error) {
+	rect := src.Bounds()
 	width, height := rect.Dx(), rect.Dy()
 	img, err = NewImage(width, height)
 	if err != nil {
 		return nil, err
 	}
 	var pix []uint8
-	switch i := img.(type) {
+	switch i := src.(type) {
 	case *image.NRGBA:
 		pix = i.Pix
 	case *image.RGBA:
@@ -83,7 +83,7 @@ func ConvertImage(img image.Image) (img *Image, err error) {
 		// An alternative is to use the default fallback. If so benchmark first.
 		pix = i.Pix
 	default:
-		copyPixels(img, img)
+		copyPixels(img, src)
 		return img, nil
 	}
 	C.memcpy(img.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
