@@ -18,7 +18,7 @@ const (
 	InitNoParachute InitFlag = C.SDL_INIT_NOPARACHUTE // Don't catch fatal signals.
 )
 
-// TODO(u): Add support for audio.
+// TODO(u): Add support for audio?
 // 	InitAudio       = InitFlag(C.SDL_INIT_AUDIO)
 // 	InitEverything  = InitAudio | InitVideo
 
