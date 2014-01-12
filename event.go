@@ -44,7 +44,7 @@ import (
 
 // PollEvent returns a pending event from the event queue or nil if the queue
 // was empty. The various event types are defined at:
-//    github.com/mewemw/we
+//    github.com/mewmew/we
 //
 // Note: PollEvent must be called from the same thread that created the window.
 func PollEvent() (event interface{}) {
