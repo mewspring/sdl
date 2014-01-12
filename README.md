@@ -30,8 +30,8 @@ Install the [SDL][libsdl] library version 2.0 and run:
 Examples
 --------
 
-simple is an example which demonstrates how to draw surfaces using the Draw and
-DrawRect methods.
+simple demonstrates how to draw surfaces using the Draw and DrawRect methods. It
+also gives an example of a basic event loop.
 
 	go get github.com/mewmew/sdl/examples/simple
 

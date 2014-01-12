@@ -1,11 +1,15 @@
 // simple demonstrates how to draw surfaces using the Draw and DrawRect methods.
+// It also gives an example of a basic event loop.
 package main
 
 import (
+	"fmt"
 	"image"
 	"log"
+	"time"
 
 	"github.com/mewmew/sdl"
+	"github.com/mewmew/we"
 )
 
 func main() {
@@ -15,7 +19,8 @@ func main() {
 	}
 }
 
-// simple demonstrates how to draw surfaces using Draw and DrawRect methods.
+// simple demonstrates how to draw surfaces using Draw and DrawRect methods. It
+// also gives an example of a basic event loop.
 func simple() (err error) {
 	// Initialize SDL.
 	err = sdl.Init(sdl.InitVideo)
@@ -61,11 +66,49 @@ func simple() (err error) {
 	sp := image.Pt(70, 70)
 	fg.DrawRect(dst, dr, sp)
 
-	err = win.Update()
-	if err != nil {
-		return err
-	}
+	// start and frames will be used to calculate the average FPS of the
+	// application.
+	start := time.Now()
+	frames := 0
 
-	// Block forever.
-	select {}
+	// displayFPS calculates and displays the average FPS.
+	displayFPS := func() {
+		seconds := float64(time.Since(start)) / float64(time.Second)
+		fps := float64(frames) / seconds
+		fmt.Println()
+		fmt.Println("=== [ statistics ] =============================================================")
+		fmt.Println()
+		fmt.Printf("   Total runtime: %.2f seconds.\n", seconds)
+		fmt.Printf("   Frame count:   %d frames\n", frames)
+		fmt.Printf("   Average FPS:   %.2f frames/second\n", fps)
+	}
+	defer displayFPS()
+
+	// Draw and event loop.
+	for {
+		// Update screen.
+		err = win.Update()
+		if err != nil {
+			return err
+		}
+		frames++
+
+		// Poll events until the event queue is empty.
+		for {
+			e := sdl.PollEvent()
+			if e == nil {
+				// The event queue is empty, break loop.
+				break
+			}
+			fmt.Printf("%T event: %v\n", e, e)
+			switch e.(type) {
+			case we.Close:
+				// Close application.
+				return nil
+			}
+		}
+
+		// Cap refresh rate at 500 FPS.
+		time.Sleep(time.Second / 500)
+	}
 }
