@@ -18,23 +18,37 @@ import (
 	"unsafe"
 )
 
+// WindowFlag is a bitfield of window flags.
+type WindowFlag uint32
+
+// Window flags.
+const (
+	// The Resizeable flag states that the window can be resized.
+	Resizeable = WindowFlag(C.SDL_WINDOW_RESIZABLE)
+	// The FullScreen flag states that the window is in full screen mode.
+	FullScreen = WindowFlag(C.SDL_WINDOW_FULLSCREEN)
+)
+
 // A Window represents a single graphics window.
 type Window struct {
 	// C window pointer.
 	w *C.SDL_Window
 }
 
-// TODO(u): make it possible to create resizeable and fullscreen windows.
-
-// OpenWindow opens a new window of the specified dimensions.
+// OpenWindow opens a new window of the specified dimensions and optional window
+// flags.
 //
 // Note: The Close method of the window should be called when finished using it.
-func OpenWindow(width, height int) (w *Window, err error) {
+func OpenWindow(width, height int, flags ...WindowFlag) (w *Window, err error) {
+	var cFlags C.Uint32
+	for _, flag := range flags {
+		cFlags |= C.Uint32(flag)
+	}
 	w = new(Window)
 	title := C.CString("untitled")
 	x := C.int(C.SDL_WINDOWPOS_UNDEFINED)
 	y := C.int(C.SDL_WINDOWPOS_UNDEFINED)
-	w.w = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), 0)
+	w.w = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), cFlags)
 	if w.w == nil {
 		return nil, getError()
 	}
