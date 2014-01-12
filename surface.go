@@ -68,8 +68,7 @@ func LoadSurface(imgPath string) (s *Surface, err error) {
 // Note: The Free method of the surface should be called when finished using it.
 func GetSurface(img image.Image) (s *Surface, err error) {
 	rect := img.Bounds()
-	width := rect.Dx()
-	height := rect.Dy()
+	width, height := rect.Dx(), rect.Dy()
 	s, err = NewSurface(width, height)
 	if err != nil {
 		return nil, err
@@ -95,27 +94,27 @@ func GetSurface(img image.Image) (s *Surface, err error) {
 // draws directly to the memory of the surface using unsafe.
 //
 // Note: The surface must be a valid surface created with NewSurface.
-func copyPixels(s *Surface, img image.Image) {
+func copyPixels(dst *Surface, src image.Image) {
 	// stride is the size in bytes of each line. The size of an individual
 	// pixel is 4 bytes.
-	stride := s.Width * 4
+	stride := dst.Width * 4
 	// size is the total size in bytes of the pixel data.
-	size := s.Height * stride
+	size := dst.Height * stride
 	sh := reflect.SliceHeader{
-		Data: uintptr(s.s.pixels),
+		Data: uintptr(dst.s.pixels),
 		Len:  size,
 		Cap:  size,
 	}
 	// dstPix is a byte slice which points to the memory of the surface's pixels.
 	dstPix := *(*[]byte)(unsafe.Pointer(&sh))
 
-	dstRect := image.Rect(0, 0, s.Width, s.Height)
-	dst := &image.NRGBA{
+	dstRect := image.Rect(0, 0, dst.Width, dst.Height)
+	dstImg := &image.NRGBA{
 		Pix:    dstPix,
 		Stride: stride,
 		Rect:   dstRect,
 	}
-	draw.Draw(dst, dstRect, img, image.ZP, draw.Over)
+	draw.Draw(dstImg, dstRect, src, image.ZP, draw.Over)
 }
 
 // Free frees the surface.
