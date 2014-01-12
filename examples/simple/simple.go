@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl"
 	"github.com/mewmew/we"
 )
@@ -117,13 +118,14 @@ var bg, fg *sdl.Surface
 
 // loadResources loads the background and foreground images.
 func loadResources() (err error) {
+	dataDir, err := goutil.SrcDir("github.com/mewmew/sdl/examples/simple/data")
 	// Load background surface.
-	bg, err = sdl.LoadSurface("data/bg.png")
+	bg, err = sdl.LoadSurface(dataDir + "/bg.png")
 	if err != nil {
 		return err
 	}
 	// Load foreground surface.
-	fg, err = sdl.LoadSurface("data/fg.png")
+	fg, err = sdl.LoadSurface(dataDir + "/fg.png")
 	if err != nil {
 		return err
 	}
