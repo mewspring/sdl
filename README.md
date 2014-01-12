@@ -24,7 +24,7 @@ Documentation
 Documentation provided by GoDoc.
 
 - sdl
-   - [win][sdl/win]: handles window creation, drawing and event handling.
+   - [win][sdl/win]: handles window creation, drawing and events.
 
 [sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
 

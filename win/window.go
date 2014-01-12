@@ -1,5 +1,5 @@
-// Package win handles window creation, drawing and event handling. The window
-// events are defined in a dedicated package located at:
+// Package win handles window creation, drawing and events. The window events
+// are defined in a dedicated package located at:
 //    github.com/mewmew/we
 //
 // The library uses a small subset of the features provided by SDL version 2.0.
@@ -48,7 +48,7 @@ var w *C.SDL_Window
 // Note: The Close function must be called when finished using the window.
 func Open(width, height int, flags ...WindowFlag) (err error) {
 	if w != nil {
-		panic("win.Open: A window has already been opened. Only one window can be open at the same time.")
+		panic("win.Open: the window has already been opened.")
 	}
 	// Initialize SDL video subsystem.
 	if C.SDL_Init(C.SDL_INIT_VIDEO) != 0 {
