@@ -36,10 +36,16 @@ type Window struct {
 }
 
 // OpenWindow opens a new window of the specified dimensions and optional window
-// flags.
+// flags. By default the window is not resizeable.
 //
 // Note: The Close method of the window should be called when finished using it.
 func OpenWindow(width, height int, flags ...WindowFlag) (w *Window, err error) {
+	// Initialize SDL video subsystem.
+	if C.SDL_Init(C.SDL_INIT_VIDEO) != 0 {
+		return nil, getError()
+	}
+
+	// Open a new window.
 	var cFlags C.Uint32
 	for _, flag := range flags {
 		cFlags |= C.Uint32(flag)
@@ -52,18 +58,29 @@ func OpenWindow(width, height int, flags ...WindowFlag) (w *Window, err error) {
 	if w.w == nil {
 		return nil, getError()
 	}
+
 	return w, nil
 }
 
 // Close closes the window.
 func (w *Window) Close() {
 	C.SDL_DestroyWindow(w.w)
+	// TODO(u): Only quit the video subsystem if audio support is ever
+	// implemented.
+	C.SDL_Quit()
 }
 
 // SetTitle sets the title of the window.
 func (w *Window) SetTitle(title string) {
 	C.SDL_SetWindowTitle(w.w, C.CString(title))
 }
+
+// TODO(u): The sdl package has no intention of providing support for multiple
+// windows. Think about how this could affect the API. For instance OpenWindow
+// could initialize an unexported global window w. This would allow dedicated
+// window drawing functions to be implemented which call w.Surface() to get
+// access to the dst surface. A Surface method could still be usefull to provide
+// screenshot functionality.
 
 // Surface returns the surface associated with the window.
 func (w *Window) Surface() (s *Surface, err error) {

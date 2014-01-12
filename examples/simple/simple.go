@@ -23,13 +23,6 @@ func main() {
 // simple demonstrates how to draw surfaces using the Draw and DrawRect methods.
 // It also gives an example of a basic event loop.
 func simple() (err error) {
-	// Initialize SDL.
-	err = sdl.Init(sdl.InitVideo)
-	if err != nil {
-		return err
-	}
-	defer sdl.Quit()
-
 	// Open window.
 	win, err := sdl.OpenWindow(640, 480, sdl.Resizeable)
 	if err != nil {
@@ -65,12 +58,7 @@ func simple() (err error) {
 		frames++
 
 		// Poll events until the event queue is empty.
-		for {
-			e := sdl.PollEvent()
-			if e == nil {
-				// The event queue is empty, break loop.
-				break
-			}
+		for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
 			fmt.Printf("%T event: %v\n", e, e)
 			switch e.(type) {
 			case we.Close:
