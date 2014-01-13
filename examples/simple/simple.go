@@ -84,14 +84,20 @@ func render() (err error) {
 	// Draw the entire background image onto the screen starting at the top left
 	// point (0, 0).
 	dp := image.ZP
-	win.Draw(dp, bgImg)
+	err = win.Draw(dp, bgImg)
+	if err != nil {
+		return err
+	}
 
 	// Fill the destination rectangle ((10, 10), (200, 200)) of the screen with
 	// corresponding pixels from the foreground iamge starting at the source
 	// point (70, 70).
 	dr := image.Rect(10, 10, 200, 200)
 	sp := image.Pt(70, 70)
-	win.DrawRect(dr, fgImg, sp)
+	err = win.DrawRect(dr, fgImg, sp)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

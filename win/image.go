@@ -15,7 +15,7 @@ import (
 
 // An Image is a collection of pixels.
 type Image struct {
-	// Width and height of the image.
+	// The width and height of the image.
 	Width, Height int
 	// C surface pointer.
 	s *C.SDL_Surface
