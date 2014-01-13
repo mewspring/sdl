@@ -1,5 +1,8 @@
 // Package font handles text rendering based on the size, style and color of
 // fonts.
+//
+// The library uses a small subset of the features provided by SDL_ttf version
+// 2.0.
 package font
 
 // #cgo pkg-config: SDL2_ttf
