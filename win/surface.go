@@ -51,7 +51,7 @@ func NewImage(width, height int) (img *Image, err error) {
 	return img, nil
 }
 
-// LoadImage loads and returns the provided image.
+// LoadImage loads the provided image file and returns it as an image.
 //
 // Note: The Free method of the image should be called when finished using it.
 func LoadImage(imgPath string) (img *Image, err error) {
@@ -59,14 +59,14 @@ func LoadImage(imgPath string) (img *Image, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return ConvertImage(src)
+	return ReadImage(src)
 }
 
-// ConvertImage converts the provided image to the standard image format of this
-// library.
+// ReadImage reads the provided image, converts it to the standard image format
+// of this library and returns it.
 //
 // Note: The Free method of the image should be called when finished using it.
-func ConvertImage(src image.Image) (img *Image, err error) {
+func ReadImage(src image.Image) (img *Image, err error) {
 	rect := src.Bounds()
 	width, height := rect.Dx(), rect.Dy()
 	img, err = NewImage(width, height)
