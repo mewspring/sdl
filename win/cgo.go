@@ -5,7 +5,6 @@ package win
 import "C"
 
 import (
-	"encoding/binary"
 	"errors"
 	"image"
 	"log"
@@ -30,8 +29,9 @@ func getError() (err error) {
 	return errors.New(C.GoString(C.SDL_GetError()))
 }
 
-// nativeByteOrder corresponds to the native byte order of the system.
-var nativeByteOrder binary.ByteOrder
+// nativeBigEndian is set to true if the native byte order of the system is big
+// endian, and false otherwise.
+var nativeBigEndian bool
 
 // initNativeByteOrder determintes the native byte order of the system.
 func initNativeByteOrder() (err error) {
@@ -39,10 +39,10 @@ func initNativeByteOrder() (err error) {
 	p := (*byte)(unsafe.Pointer(&i))
 	switch *p {
 	case 0x01:
-		nativeByteOrder = binary.BigEndian
+		nativeBigEndian = true
 		return nil
 	case 0x04:
-		nativeByteOrder = binary.LittleEndian
+		nativeBigEndian = false
 		return nil
 	}
 	return errors.New("win.initNativeByteOrder: unable to determine native byte order")

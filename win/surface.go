@@ -5,7 +5,6 @@ package win
 import "C"
 
 import (
-	"encoding/binary"
 	"image"
 	"image/draw"
 	"reflect"
@@ -32,17 +31,16 @@ func NewImage(width, height int) (img *Image, err error) {
 	}
 	// Red, green blue and alpha masks.
 	var r, g, b, a C.Uint32
-	switch nativeByteOrder {
-	case binary.LittleEndian:
-		r = 0x000000FF
-		g = 0x0000FF00
-		b = 0x00FF0000
-		a = 0xFF000000
-	case binary.BigEndian:
+	if nativeBigEndian {
 		r = 0xFF000000
 		g = 0x00FF0000
 		b = 0x0000FF00
 		a = 0x000000FF
+	} else {
+		r = 0x000000FF
+		g = 0x0000FF00
+		b = 0x00FF0000
+		a = 0xFF000000
 	}
 	img.s = C.SDL_CreateRGBSurface(0, C.int(width), C.int(height), 32, r, g, b, a)
 	if img.s == nil {
@@ -79,7 +77,7 @@ func ReadImage(src image.Image) (img *Image, err error) {
 		pix = i.Pix
 	case *image.RGBA:
 		// TODO(u): Do we need normalize the image since its stored as
-		// premultiplied alpha. If so divide the color values by the alpha value.
+		// premultiplied alpha? If so divide the color values by the alpha value.
 		// An alternative is to use the default fallback. If so benchmark first.
 		pix = i.Pix
 	default:
@@ -90,8 +88,9 @@ func ReadImage(src image.Image) (img *Image, err error) {
 	return img, nil
 }
 
-// copyPixels provides a draw.Draw fallback for arbitrary image formats. It
-// draws directly to the memory of the SDL surface using unsafe.
+// copyPixels copies the pixels of the src image to the dst SDL surface. It uses
+// unsafe to draw directly to the memory of the SDL surface. No alpha blending
+// is performed since it's always used during the creation of new SDL surfaces.
 //
 // Note: The dst image must be a valid SDL surface created with NewImage.
 func copyPixels(dst *Image, src image.Image) {
@@ -114,7 +113,7 @@ func copyPixels(dst *Image, src image.Image) {
 		Stride: stride,
 		Rect:   dstRect,
 	}
-	draw.Draw(dstImg, dstRect, src, image.ZP, draw.Over)
+	draw.Draw(dstImg, dstRect, src, image.ZP, draw.Src)
 }
 
 // Free frees the image.

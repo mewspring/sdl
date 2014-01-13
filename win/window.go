@@ -10,12 +10,12 @@ package win
 // #cgo pkg-config: sdl2
 // #include <SDL2/SDL.h>
 //
-// static SDL_Rect * makeRectArray(int size) {
-//    return calloc(sizeof(SDL_Rect), size);
+// static SDL_Rect * makeRectArray(int n) {
+//    return calloc(n, sizeof(SDL_Rect));
 // }
 //
-// static void setArrayRect(SDL_Rect *cRects, SDL_Rect *rect, int i) {
-//    void *dst = cRects + sizeof(SDL_Rect)*i;
+// static void setArrayRect(SDL_Rect *rects, SDL_Rect *rect, int i) {
+//    void *dst = rects + i*sizeof(SDL_Rect);
 //    memcpy(dst, rect, sizeof(SDL_Rect));
 // }
 import "C"
@@ -50,7 +50,7 @@ func Open(width, height int, flags ...WindowFlag) (err error) {
 	if w != nil {
 		panic("win.Open: the window has already been opened.")
 	}
-	// Initialize SDL video subsystem.
+	// Initialize the SDL video subsystem.
 	if C.SDL_Init(C.SDL_INIT_VIDEO) != 0 {
 		return getError()
 	}
@@ -89,10 +89,12 @@ func Screen() (screen *Image, err error) {
 	if screen.s == nil {
 		return nil, getError()
 	}
+	screen.Width = int(screen.s.w)
+	screen.Height = int(screen.s.h)
 	return screen, nil
 }
 
-// Update copies the entire window image onto screen.
+// Update copies the entire window image onto the screen.
 func Update() (err error) {
 	if C.SDL_UpdateWindowSurface(w) != 0 {
 		return getError()
@@ -100,8 +102,8 @@ func Update() (err error) {
 	return nil
 }
 
-// UpdateRects copies a portion of the window image onto screen as specified by
-// rects.
+// UpdateRects copies a portion of the window image onto the screen as specified
+// by rects.
 func UpdateRects(rects []image.Rectangle) (err error) {
 	cRects := C.makeRectArray(C.int(len(rects)))
 	defer C.SDL_free(unsafe.Pointer(cRects))
@@ -122,8 +124,7 @@ func Draw(dp image.Point, src *Image) (err error) {
 	if err != nil {
 		return err
 	}
-	dr := image.Rect(dp.X, dp.Y, dp.X+src.Width, dp.Y+src.Height)
-	return dst.DrawRect(dr, src, image.ZP)
+	return dst.Draw(dp, src)
 }
 
 // DrawRect fills the destination rectangle dr of the window with corresponding
@@ -133,11 +134,5 @@ func DrawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
 	if err != nil {
 		return err
 	}
-	sr := image.Rect(sp.X, sp.Y, sp.X+dr.Dx(), sp.Y+dr.Dy())
-	srcRect := cRect(sr)
-	dstRect := cRect(dr)
-	if C.SDL_BlitSurface(src.s, srcRect, dst.s, dstRect) != 0 {
-		return getError()
-	}
-	return nil
+	return dst.DrawRect(dr, src, sp)
 }
