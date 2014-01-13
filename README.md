@@ -24,8 +24,11 @@ Documentation
 Documentation provided by GoDoc.
 
 - sdl
+   - [font][sdl/font]: handles text rendering based on the size, style and color
+   of fonts.
    - [win][sdl/win]: handles window creation, drawing and events.
 
+[sdl/font]: http://godoc.org/github.com/mewmew/sdl/font
 [sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
 
 Installation
@@ -34,6 +37,12 @@ Installation
 Install the [SDL][libsdl] library version 2.0 and run:
 
 	go get github.com/mewmew/sdl/win
+
+Install the [SDL_ttf][] library version 2.0 and run:
+
+	go get github.com/mewmew/sdl/font
+
+[SDL_ttf]: http://www.libsdl.org/projects/SDL_ttf/
 
 Examples
 --------
