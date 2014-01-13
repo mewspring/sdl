@@ -83,13 +83,13 @@ func SetTitle(title string) {
 }
 
 // Screen returns the image associated with the window.
-func Screen() (img *Image, err error) {
-	img = new(Image)
-	img.s = C.SDL_GetWindowSurface(w)
-	if img.s == nil {
+func Screen() (screen *Image, err error) {
+	screen = new(Image)
+	screen.s = C.SDL_GetWindowSurface(w)
+	if screen.s == nil {
 		return nil, getError()
 	}
-	return img, nil
+	return screen, nil
 }
 
 // Update copies the entire window image onto screen.

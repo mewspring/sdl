@@ -7,7 +7,7 @@ subject to change. The documentation can be inaccurate.
 win
 ===
 
-This package provides the core functionality required for window creation,
+Package win provides the core functionality required for window creation,
 drawing and event handling. The window events are defined in a dedicated package
 located at:
 	github.com/mewmew/we
