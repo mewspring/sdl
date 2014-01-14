@@ -51,8 +51,8 @@ Install the [SDL_ttf][] library version 2.0 and run:
 Examples
 --------
 
-`simple` demonstrates how to draw surfaces using the [Draw][] and [DrawRect][]
-methods. It also gives an example of a basic event loop.
+The `simple` command demonstrates how to draw surfaces using the [Draw][] and
+[DrawRect][] methods. It also gives an example of a basic event loop.
 
 	go get github.com/mewmew/sdl/examples/simple
 
@@ -61,7 +61,7 @@ methods. It also gives an example of a basic event loop.
 [Draw]: http://godoc.org/github.com/mewmew/sdl/win#Image.Draw
 [DrawRect]: http://godoc.org/github.com/mewmew/sdl/win#Image.DrawRect
 
-`fonts` demonstrates how to render text using TTF fonts.
+The `fonts` command demonstrates how to render text using TTF fonts.
 
 	go get github.com/mewmew/sdl/examples/fonts
 
