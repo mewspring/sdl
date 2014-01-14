@@ -8,6 +8,7 @@
 package win
 
 // #cgo pkg-config: sdl2
+// #include <stdlib.h>
 // #include <string.h>
 // #include <SDL2/SDL.h>
 //
