@@ -54,6 +54,12 @@ also gives an example of a basic event loop.
 
 ![Screenshot - simple](https://raw.github.com/mewmew/sdl/master/examples/simple/simple.png)
 
+fonts demonstrates how to render text using TTF fonts.
+
+	go get github.com/mewmew/sdl/examples/fonts
+
+![Screenshot - fonts](https://raw.github.com/mewmew/sdl/master/examples/fonts/fonts.png)
+
 public domain
 -------------
 

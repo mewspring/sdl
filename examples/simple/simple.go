@@ -79,7 +79,7 @@ func simple() (err error) {
 	}
 }
 
-// render renders the backfround and foreground images onto the window.
+// render renders the background and foreground images onto the window.
 func render() (err error) {
 	// Draw the entire background image onto the screen starting at the top left
 	// point (0, 0).
