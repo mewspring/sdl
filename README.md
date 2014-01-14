@@ -10,12 +10,14 @@ win
 Package win provides the core functionality required for window creation,
 drawing and event handling. The window events are defined in a dedicated package
 located at:
-	github.com/mewmew/we
+
+- [github.com/mewmew/we][]
 
 The library uses a small subset of the features provided by [SDL][libsdl]
 version 2.0. Support for multiple windows has intentionally been left out to
 simplify the API.
 
+[github.com/mewmew/we]: https://github.com/mewmew/we
 [libsdl]: http://www.libsdl.org/
 
 Documentation
@@ -27,9 +29,11 @@ Documentation provided by GoDoc.
    - [font][sdl/font]: handles text rendering based on the size, style and color
    of fonts.
    - [win][sdl/win]: handles window creation, drawing and events.
+- [we][]: specifies the types and constants commonly used for window events.
 
 [sdl/font]: http://godoc.org/github.com/mewmew/sdl/font
 [sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
+[we]: http://godoc.org/github.com/mewmew/we
 
 Installation
 ------------
