@@ -3,6 +3,7 @@ package win
 // #cgo pkg-config: sdl2
 // #include <string.h>
 // #include <SDL2/SDL.h>
+// #include <string.h>
 import "C"
 
 import (
