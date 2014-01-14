@@ -8,6 +8,7 @@
 package win
 
 // #cgo pkg-config: sdl2
+// #include <string.h>
 // #include <SDL2/SDL.h>
 //
 // static SDL_Rect * makeRectArray(int n) {
