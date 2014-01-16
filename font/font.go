@@ -10,6 +10,7 @@ package font
 import "C"
 
 import (
+	"errors"
 	"image/color"
 	"log"
 
@@ -24,10 +25,23 @@ func init() {
 	}
 }
 
+// Mode specifies the font rendering mode. It is either Solid or Blended.
+type Mode int
+
+const (
+	// Solid is a rendering mode which uses solid colors and no alpha blending.
+	// This is the default rendering mode of fonts.
+	Solid Mode = iota
+	// Blended is a rendering mode which uses alpha blending to dither the font.
+	Blended
+)
+
 // A Font describes a particular size, style and color in which to render text.
 type Font struct {
 	// The maximum pixel height of all glyphs in the font.
 	Height int
+	// The rendering mode of the font.
+	mode Mode
 	// The color of the text drawn with font.
 	c C.SDL_Color
 	// C font pointer.
@@ -61,13 +75,27 @@ func (f *Font) SetColor(c color.Color) {
 	f.c = cColor(c)
 }
 
+// SetMode sets the rendering mode of the font.
+func (f *Font) SetMode(mode Mode) {
+	f.mode = mode
+}
+
 // Render renders an image of the provided text in the style, size and color of
 // the font.
 //
 // Note: The Free method of the returned image should be called when finished
 // using it.
 func (f *Font) Render(text string) (img *win.Image, err error) {
-	s := C.TTF_RenderUTF8_Blended(f.f, C.CString(text), f.c)
+	if text == "" {
+		return nil, errors.New("font.Render: invalid line of length 0")
+	}
+	var s *C.SDL_Surface
+	switch f.mode {
+	case Solid:
+		s = C.TTF_RenderUTF8_Solid(f.f, C.CString(text), f.c)
+	case Blended:
+		s = C.TTF_RenderUTF8_Blended(f.f, C.CString(text), f.c)
+	}
 	if s == nil {
 		return nil, getError()
 	}
