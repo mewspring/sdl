@@ -75,7 +75,8 @@ func (f *Font) SetColor(c color.Color) {
 	f.c = cColor(c)
 }
 
-// SetMode sets the rendering mode of the font.
+// SetMode sets the rendering mode of the font. The default rendering mode is
+// Solid.
 func (f *Font) SetMode(mode Mode) {
 	f.mode = mode
 }
