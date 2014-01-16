@@ -28,10 +28,13 @@ Documentation provided by GoDoc.
 - sdl
    - [font][sdl/font]: handles text rendering based on the size, style and color
    of fonts.
+      - [fontutil][sdl/font/fontutil]: provides font utility functions for word
+      wrapping.
    - [win][sdl/win]: handles window creation, drawing and events.
 - [we][]: specifies the types and constants commonly used for window events.
 
 [sdl/font]: http://godoc.org/github.com/mewmew/sdl/font
+[sdl/font/fontutil]: http://godoc.org/github.com/mewmew/sdl/font/fontutil
 [sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
 [we]: http://godoc.org/github.com/mewmew/we
 
@@ -66,6 +69,13 @@ The `fonts` command demonstrates how to render text using TTF fonts.
 	go get github.com/mewmew/sdl/examples/fonts
 
 ![Screenshot - fonts](https://raw.github.com/mewmew/sdl/master/examples/fonts/fonts.png)
+
+The `boxes` command demonstrates how to render text within the confines of a
+fixed width box.
+
+	go get github.com/mewmew/sdl/examples/boxes
+
+![Screenshot - boxes](https://raw.github.com/mewmew/sdl/master/examples/boxes/boxes.png)
 
 public domain
 -------------
