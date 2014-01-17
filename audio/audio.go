@@ -1,6 +1,16 @@
+// TODO(u): rethink the API. Make it work more like win. audio.Play could be a
+// convenience function around an OutputSystem/SpeakerSetup/Speaker/Output/...
+// convenience function around an OutputSystem/SpeakerSetup/Speaker/Output/
+// SpeakerSet...
+//
+// This would make it possible to take advantage of multiple speakers if they
+// are present. It would also make it at least theoretically possible to play
+// some sounds through one set of speakers and other sounds through another set
+// of speakers.
+
 // Package audio provides support for audio playback.
 //
-// NOTE: This is a work in progrss. It is in the API design phase and no
+// NOTE: This is a work in progress. It is in the API design phase and no
 // functionality has yet been implemented.
 package audio
 
