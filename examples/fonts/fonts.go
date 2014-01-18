@@ -158,12 +158,15 @@ func loadResources() (err error) {
 		return err
 	}
 	fpsFont.SetColor(color.White)
+	// Use the blended rendering mode for the font.
+	fpsFont.SetMode(font.Blended)
 
 	// Load text font.
 	textFont, err = font.Load(dataDir+"/Exocet.ttf", 32)
 	if err != nil {
 		return err
 	}
+	textFont.SetMode(font.Blended)
 
 	return nil
 }
