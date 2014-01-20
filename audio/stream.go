@@ -36,10 +36,10 @@ func Open(filePath string) (stream *Stream, err error) {
 // provided io.Reader.
 //
 // Note: The Close method should be called when done using the audio stream.
-func New(r io.Reader) (stream *Stream, err error) {
-	// TODO(u): implement using Mix_LoadWAV_RW.
-	panic("audio.New: not yet implemented.")
-}
+//func New(r io.Reader) (stream *Stream, err error) {
+//	// TODO(u): implement using Mix_LoadWAV_RW.
+//	panic("audio.New: not yet implemented.")
+//}
 
 // Close closes the audio stream.
 func (stream *Stream) Close() {
