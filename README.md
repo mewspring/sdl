@@ -26,6 +26,7 @@ Documentation
 Documentation provided by GoDoc.
 
 - sdl
+   - [audio][sdl/audio]: provides support for audio playback.
    - [font][sdl/font]: handles text rendering based on the size, style and color
    of fonts.
       - [fontutil][sdl/font/fontutil]: provides font utility functions for word
@@ -33,6 +34,7 @@ Documentation provided by GoDoc.
    - [win][sdl/win]: handles window creation, drawing and events.
 - [we][]: specifies the types and constants commonly used for window events.
 
+[sdl/audio]: http://godoc.org/github.com/mewmew/sdl/audio
 [sdl/font]: http://godoc.org/github.com/mewmew/sdl/font
 [sdl/font/fontutil]: http://godoc.org/github.com/mewmew/sdl/font/fontutil
 [sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
@@ -50,6 +52,12 @@ Install the [SDL_ttf][] library version 2.0 and run:
 	go get github.com/mewmew/sdl/font
 
 [SDL_ttf]: http://www.libsdl.org/projects/SDL_ttf/
+
+Install the [SDL_mixer][] library version 2.0 and run:
+
+	go get github.com/mewmew/sdl/audio
+
+[SDL_mixer]: http://www.libsdl.org/projects/SDL_mixer/
 
 Examples
 --------
@@ -76,6 +84,10 @@ fixed width box.
 	go get github.com/mewmew/sdl/examples/boxes
 
 ![Screenshot - boxes](https://raw.github.com/mewmew/sdl/master/examples/boxes/boxes.png)
+
+The `play` command demonstrates how to open audio files and play sounds.
+
+	go get github.com/mewmew/sdl/examples/play
 
 public domain
 -------------
