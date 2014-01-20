@@ -21,9 +21,11 @@ ref: http://dejavu-fonts.org/wiki/License
 Flare
 -----
 
-The `birds.ogg` file is from the [Flare][] project. Its original name is
-`bird_twitter_loop.ogg`.
+The `birds.ogg` file is from the [Flare][] project. The [original version][] of
+the file has been released into the *[public domain][]*.
 
 ref: https://github.com/clintbellanger/flare-game/wiki/Credits
 
 [Flare]: https://github.com/clintbellanger/flare-game/
+[original version]: http://www.freesound.org/people/alienistcog/sounds/125781/
+[public domain]: https://creativecommons.org/publicdomain/zero/1.0/
