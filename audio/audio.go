@@ -1,7 +1,7 @@
 // Package audio provides support for audio playback.
 //
-// The audio library automatically initializes itself when imported. The Quit
-// function must be called when finished using the library.
+// The audio library is automatically initialized when imported. Therefore the
+// Quit function must be called when finished using the library.
 package audio
 
 // #cgo pkg-config: sdl2 SDL2_mixer

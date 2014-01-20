@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	// The audio library automatically initializes itself when imported. Quit the
+	// The audio library is automatically initialized when imported. Quit the
 	// audio library on return.
 	defer audio.Quit()
 
