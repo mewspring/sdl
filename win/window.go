@@ -69,6 +69,13 @@ func Open(width, height int, flags ...WindowFlag) (err error) {
 	if w == nil {
 		return getError()
 	}
+
+	// Make sure the window surface is valid for updates.
+	s := C.SDL_GetWindowSurface(w)
+	if s == nil {
+		return getError()
+	}
+
 	return nil
 }
 
