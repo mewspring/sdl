@@ -5,9 +5,9 @@ package audio
 // #include <SDL2/SDL_mixer.h>
 import "C"
 
-import (
-	"io"
-)
+//import (
+//	"io"
+//)
 
 // A Stream is a sequence of audio samples.
 type Stream struct {
