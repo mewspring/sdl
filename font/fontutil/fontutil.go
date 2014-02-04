@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/mewmew/sdl/font"
-	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/sdl/window"
 )
 
 // A Box is a bounding box which confines texts to a fixed pixel width.
@@ -89,7 +89,7 @@ func (box *Box) SetSpacing(spacing int) {
 
 // Render renders the text using the font of the box. It wraps the text so that
 // no single line overflows the pixel width of the box.
-func (box *Box) Render(text string) (img *win.Image, err error) {
+func (box *Box) Render(text string) (img *window.Image, err error) {
 	// Break the input text into lines based on the box width.
 	lines, err := box.Split(text)
 	if err != nil {
@@ -99,7 +99,7 @@ func (box *Box) Render(text string) (img *win.Image, err error) {
 	// Create an image large enough to hold all lines.
 	width := box.width
 	height := box.f.Height*len(lines) + box.spacing*(len(lines)-1)
-	img, err = win.NewImage(width, height)
+	img, err = window.NewImage(width, height)
 	if err != nil {
 		return nil, err
 	}

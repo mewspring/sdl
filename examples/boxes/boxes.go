@@ -12,7 +12,7 @@ import (
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/font"
 	"github.com/mewmew/sdl/font/fontutil"
-	window "github.com/mewmew/sdl/win"
+	"github.com/mewmew/sdl/window"
 	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )

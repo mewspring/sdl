@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/mewkiz/pkg/goutil"
-	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/sdl/window"
 	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )
@@ -25,7 +25,7 @@ func main() {
 // It also gives an example of a basic event loop.
 func simple() (err error) {
 	// Open the window.
-	win, err := win.Open(640, 480, win.Resizeable)
+	win, err := window.Open(640, 480, window.Resizeable)
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func render(win wandi.Window) (err error) {
 }
 
 // Background and foreground images.
-var bgImg, fgImg *win.Image
+var bgImg, fgImg *window.Image
 
 // loadResources loads the background and foreground images.
 func loadResources() (err error) {
@@ -113,12 +113,12 @@ func loadResources() (err error) {
 		return err
 	}
 	// Load background image.
-	bgImg, err = win.LoadImage(dataDir + "/bg.png")
+	bgImg, err = window.LoadImage(dataDir + "/bg.png")
 	if err != nil {
 		return err
 	}
 	// Load foreground image.
-	fgImg, err = win.LoadImage(dataDir + "/fg.png")
+	fgImg, err = window.LoadImage(dataDir + "/fg.png")
 	if err != nil {
 		return err
 	}

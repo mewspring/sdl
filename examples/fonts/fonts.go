@@ -10,7 +10,7 @@ import (
 
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/font"
-	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/sdl/window"
 	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )
@@ -25,7 +25,7 @@ func main() {
 // fonts demonstrates how to render text using TTF fonts.
 func fonts() (err error) {
 	// Open the window.
-	win, err := win.Open(640, 480, win.Resizeable)
+	win, err := window.Open(640, 480, window.Resizeable)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func fonts() (err error) {
 }
 
 // render renders the background image and the rendered text onto the window.
-func render(win wandi.Window, textImg *win.Image) (err error) {
+func render(win wandi.Window, textImg *window.Image) (err error) {
 	// Draw the entire background image onto the screen starting at the top left
 	// point (0, 0).
 	dp := image.ZP
@@ -135,7 +135,7 @@ func getFPS(start time.Time, frames float64) (text string) {
 }
 
 // Background image.
-var bgImg *win.Image
+var bgImg *window.Image
 
 // TTF fonts.
 var fpsFont, textFont *font.Font
@@ -148,7 +148,7 @@ func loadResources() (err error) {
 	}
 
 	// Load background image.
-	bgImg, err = win.LoadImage(dataDir + "/bg.png")
+	bgImg, err = window.LoadImage(dataDir + "/bg.png")
 	if err != nil {
 		return err
 	}

@@ -14,7 +14,7 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/sdl/window"
 )
 
 func init() {
@@ -86,7 +86,7 @@ func (f *Font) SetMode(mode Mode) {
 //
 // Note: The Free method of the returned image should be called when finished
 // using it.
-func (f *Font) Render(text string) (img *win.Image, err error) {
+func (f *Font) Render(text string) (img *window.Image, err error) {
 	if text == "" {
 		return nil, errors.New("font.Render: invalid line of length 0")
 	}

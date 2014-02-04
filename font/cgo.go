@@ -9,7 +9,7 @@ import (
 	"image/color"
 	"unsafe"
 
-	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/sdl/window"
 )
 
 // cColor converts a Go color.Color to a C SDL_Color.
@@ -27,9 +27,9 @@ func getTTFError() (err error) {
 	return errors.New(C.GoString(C.TTF_GetError()))
 }
 
-// image is identical to the win.Image structure. It is used in conjunction with
-// unsafe to avoid having to export the SDL surface member of the win.Image
-// structure.
+// image is identical to the window.Image structure. It is used in conjunction
+// with unsafe to avoid having to export the SDL surface member of the
+// window.Image structure.
 type image struct {
 	// The width and height of the image.
 	w, h int
@@ -37,14 +37,14 @@ type image struct {
 	s *C.SDL_Surface
 }
 
-// winImage returns a *win.Image corresponding to the provided SDL surface.
-func winImage(s *C.SDL_Surface) *win.Image {
-	// The SDL surface of win.Image isn't exported and it shouldn't be. Therefore
-	// we use unsafe to keep the API clean.
+// winImage returns a *window.Image corresponding to the provided SDL surface.
+func winImage(s *C.SDL_Surface) *window.Image {
+	// The SDL surface of window.Image isn't exported and it shouldn't be.
+	// Therefore we use unsafe to keep the API clean.
 	img := &image{
 		w: int(s.w),
 		h: int(s.h),
 		s: s,
 	}
-	return (*win.Image)(unsafe.Pointer(img))
+	return (*window.Image)(unsafe.Pointer(img))
 }

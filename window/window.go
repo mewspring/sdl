@@ -1,10 +1,10 @@
-// Package win handles window creation, event handling and image drawing.
+// Package window handles window creation, event handling and image drawing.
 //
 // The library uses a small subset of the features provided by the SDL library
 // version 2.0 [1].
 //
 // [1]: http://libsdl.org/
-package win
+package window
 
 // #cgo pkg-config: sdl2
 // #include <SDL2/SDL.h>
