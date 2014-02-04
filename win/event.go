@@ -1,5 +1,6 @@
 // TODO(u): install a default event filter?
 // TODO(u): implement a SetEventFilter function?
+// TODO(u): disable unused states using SDL_EventState.
 
 package win
 

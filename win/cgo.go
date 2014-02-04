@@ -7,8 +7,6 @@ import "C"
 import (
 	"errors"
 	"image"
-	"log"
-	"unsafe"
 )
 
 // cRect converts a Go image.Rectangle to a C SDL_Rect.
@@ -24,33 +22,7 @@ func cRect(rect image.Rectangle) (cRect *C.SDL_Rect) {
 	return cRect
 }
 
-// getError returns the last error message.
-func getError() (err error) {
+// getSDLError returns the last SDL error message.
+func getSDLError() (err error) {
 	return errors.New(C.GoString(C.SDL_GetError()))
-}
-
-// nativeBigEndian is set to true if the native byte order of the system is big
-// endian, and false otherwise.
-var nativeBigEndian bool
-
-// initNativeByteOrder determintes the native byte order of the system.
-func initNativeByteOrder() (err error) {
-	i := int32(0x01020304)
-	p := (*byte)(unsafe.Pointer(&i))
-	switch *p {
-	case 0x01:
-		nativeBigEndian = true
-		return nil
-	case 0x04:
-		nativeBigEndian = false
-		return nil
-	}
-	return errors.New("win.initNativeByteOrder: unable to determine native byte order")
-}
-
-func init() {
-	err := initNativeByteOrder()
-	if err != nil {
-		log.Fatalln(err)
-	}
 }

@@ -67,10 +67,7 @@ func fonts() (err error) {
 		}
 
 		// Display window updates on screen.
-		err = win.Update()
-		if err != nil {
-			return err
-		}
+		win.Update()
 		frames++
 
 		// Poll events until the event queue is empty.

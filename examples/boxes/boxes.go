@@ -63,6 +63,7 @@ func boxes() (err error) {
 	if err != nil {
 		return err
 	}
+	f.SetMode(font.Blended)
 	defer f.Free()
 
 	// Render the text within a bounding box of width 300. It wraps the text so
@@ -99,10 +100,7 @@ func boxes() (err error) {
 		}
 
 		// Display window updates on the screen.
-		err = win.Update()
-		if err != nil {
-			return err
-		}
+		win.Update()
 
 		// Cap the refresh rate at 500 FPS.
 		time.Sleep(time.Second / 500)

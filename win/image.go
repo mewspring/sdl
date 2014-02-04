@@ -7,45 +7,36 @@ import "C"
 
 import (
 	"image"
-	"image/draw"
-	"reflect"
+	"log"
 	"unsafe"
 
 	"github.com/mewkiz/pkg/imgutil"
 )
 
-// An Image is a collection of pixels.
+// An Image is a mutable collection of pixels.
 type Image struct {
 	// The width and height of the image.
 	Width, Height int
-	// C surface pointer.
-	s *C.SDL_Surface
+	// C texture pointer.
+	tex *C.SDL_Texture
 }
 
 // NewImage returns a new image of the specified dimensions.
 //
 // Note: The Free method of the image should be called when finished using it.
 func NewImage(width, height int) (img *Image, err error) {
+	access := C.int(C.SDL_TEXTUREACCESS_TARGET)
+	tex := C.SDL_CreateTexture(renderer, C.SDL_PIXELFORMAT_ABGR8888, access, C.int(width), C.int(height))
+	if tex == nil {
+		return nil, getSDLError()
+	}
+	if C.SDL_SetTextureBlendMode(tex, C.SDL_BLENDMODE_BLEND) != 0 {
+		return nil, getSDLError()
+	}
 	img = &Image{
 		Width:  width,
 		Height: height,
-	}
-	// Red, green blue and alpha masks.
-	var r, g, b, a C.Uint32
-	if nativeBigEndian {
-		r = 0xFF000000
-		g = 0x00FF0000
-		b = 0x0000FF00
-		a = 0x000000FF
-	} else {
-		r = 0x000000FF
-		g = 0x0000FF00
-		b = 0x00FF0000
-		a = 0xFF000000
-	}
-	img.s = C.SDL_CreateRGBSurface(0, C.int(width), C.int(height), 32, r, g, b, a)
-	if img.s == nil {
-		return nil, getError()
+		tex:    tex,
 	}
 	return img, nil
 }
@@ -66,60 +57,29 @@ func LoadImage(imgPath string) (img *Image, err error) {
 //
 // Note: The Free method of the image should be called when finished using it.
 func ReadImage(src image.Image) (img *Image, err error) {
-	rect := src.Bounds()
-	width, height := rect.Dx(), rect.Dy()
+	bounds := src.Bounds()
+	width, height := bounds.Dx(), bounds.Dy()
 	img, err = NewImage(width, height)
 	if err != nil {
 		return nil, err
 	}
-	var pix []uint8
+	dstRect := cRect(image.Rect(0, 0, width, height))
 	switch i := src.(type) {
 	case *image.NRGBA:
-		pix = i.Pix
+		C.SDL_UpdateTexture(img.tex, dstRect, unsafe.Pointer(&i.Pix[0]), C.int(i.Stride))
 	case *image.RGBA:
-		// TODO(u): Do we need normalize the image since its stored as
-		// premultiplied alpha? If so divide the color values by the alpha value.
-		// An alternative is to use the default fallback. If so benchmark first.
-		pix = i.Pix
+		// TODO(u): Do we need normalize the image since it is stored as
+		// premultiplied alpha?
+		C.SDL_UpdateTexture(img.tex, dstRect, unsafe.Pointer(&i.Pix[0]), C.int(i.Stride))
 	default:
-		copyPixels(img, src)
-		return img, nil
+		log.Fatalf("win.ReadImage: image format %T not yet supported.\n", i)
 	}
-	C.memcpy(img.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
 	return img, nil
-}
-
-// copyPixels copies the pixels of the src image to the dst SDL surface. It uses
-// unsafe to draw directly to the memory of the SDL surface. No alpha blending
-// is performed since it's always used during the creation of new SDL surfaces.
-//
-// Note: The dst image must be a valid SDL surface created with NewImage.
-func copyPixels(dst *Image, src image.Image) {
-	// stride is the size in bytes of each line. The size of an individual
-	// pixel is 4 bytes.
-	stride := dst.Width * 4
-	// size is the total size in bytes of the pixel data.
-	size := dst.Height * stride
-	sh := reflect.SliceHeader{
-		Data: uintptr(dst.s.pixels),
-		Len:  size,
-		Cap:  size,
-	}
-	// dstPix is a byte slice which points to the memory of the surface's pixels.
-	dstPix := *(*[]byte)(unsafe.Pointer(&sh))
-
-	dstRect := image.Rect(0, 0, dst.Width, dst.Height)
-	dstImg := &image.NRGBA{
-		Pix:    dstPix,
-		Stride: stride,
-		Rect:   dstRect,
-	}
-	draw.Draw(dstImg, dstRect, src, image.ZP, draw.Src)
 }
 
 // Free frees the image.
 func (img *Image) Free() {
-	C.SDL_FreeSurface(img.s)
+	C.SDL_DestroyTexture(img.tex)
 }
 
 // Draw draws the entire src image onto the dst image starting at the
@@ -132,11 +92,16 @@ func (dst *Image) Draw(dp image.Point, src *Image) (err error) {
 // DrawRect fills the destination rectangle dr of the dst image with
 // corresponding pixels from the src image starting at the source point sp.
 func (dst *Image) DrawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
+	// Set the texture as the current rendering target.
+	if C.SDL_SetRenderTarget(renderer, dst.tex) != 0 {
+		return getSDLError()
+	}
+
 	sr := image.Rect(sp.X, sp.Y, sp.X+dr.Dx(), sp.Y+dr.Dy())
 	srcRect := cRect(sr)
 	dstRect := cRect(dr)
-	if C.SDL_BlitSurface(src.s, srcRect, dst.s, dstRect) != 0 {
-		return getError()
+	if C.SDL_RenderCopy(renderer, src.tex, srcRect, dstRect) != 0 {
+		return getSDLError()
 	}
 	return nil
 }

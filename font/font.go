@@ -5,7 +5,8 @@
 // 2.0.
 package font
 
-// #cgo pkg-config: SDL2_ttf
+// #cgo pkg-config: sdl2 SDL2_ttf
+// #include <SDL2/SDL.h>
 // #include <SDL2/SDL_ttf.h>
 import "C"
 
@@ -21,7 +22,7 @@ func init() {
 	// Initializes the font library. The win.Close function calls SDL_Quit, which
 	// also quits the font library.
 	if C.TTF_Init() != 0 {
-		log.Fatalln(getError())
+		log.Fatalln(getTTFError())
 	}
 }
 
@@ -59,7 +60,7 @@ func Load(fontPath string, fontSize int) (f *Font, err error) {
 	}
 	f.f = C.TTF_OpenFont(C.CString(fontPath), C.int(fontSize))
 	if f.f == nil {
-		return nil, getError()
+		return nil, getTTFError()
 	}
 	f.Height = int(C.TTF_FontHeight(f.f))
 	return f, nil
@@ -98,9 +99,13 @@ func (f *Font) Render(text string) (img *win.Image, err error) {
 		s = C.TTF_RenderUTF8_Blended(f.f, C.CString(text), f.c)
 	}
 	if s == nil {
-		return nil, getError()
+		return nil, getTTFError()
 	}
-	img = winImage(s)
+	defer C.SDL_FreeSurface(s)
+	img, err = win.ReadImage(castImage(s))
+	if err != nil {
+		return nil, err
+	}
 	return img, nil
 }
 
@@ -109,7 +114,7 @@ func (f *Font) Render(text string) (img *win.Image, err error) {
 func (f *Font) RenderWidth(text string) (width int, err error) {
 	var w C.int
 	if C.TTF_SizeUTF8(f.f, C.CString(text), &w, nil) != 0 {
-		return 0, getError()
+		return 0, getTTFError()
 	}
 	return int(w), nil
 }

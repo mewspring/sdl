@@ -51,10 +51,7 @@ func simple() (err error) {
 	// Update and event loop.
 	for {
 		// Display window updates on screen.
-		err = win.Update()
-		if err != nil {
-			return err
-		}
+		win.Update()
 		frames++
 
 		// Poll events until the event queue is empty.
@@ -74,8 +71,8 @@ func simple() (err error) {
 			}
 		}
 
-		// Cap refresh rate at 500 FPS.
-		time.Sleep(time.Second / 500)
+		// Cap refresh rate at 60 FPS.
+		time.Sleep(time.Second / 60)
 	}
 }
 
