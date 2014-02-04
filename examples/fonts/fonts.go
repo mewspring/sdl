@@ -11,6 +11,7 @@ import (
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/font"
 	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )
 
@@ -24,7 +25,7 @@ func main() {
 // fonts demonstrates how to render text using TTF fonts.
 func fonts() (err error) {
 	// Open the window.
-	err = win.Open(640, 480, win.Resizeable)
+	win, err := win.Open(640, 480, win.Resizeable)
 	if err != nil {
 		return err
 	}
@@ -55,13 +56,13 @@ func fonts() (err error) {
 	// Update and event loop.
 	for {
 		// Render the background image and the rendered text onto the window.
-		err = render(textImg)
+		err = render(win, textImg)
 		if err != nil {
 			return err
 		}
 
 		// Render the average FPS onto the window.
-		err = renderFPS(start, frames)
+		err = renderFPS(win, start, frames)
 		if err != nil {
 			return err
 		}
@@ -89,7 +90,7 @@ func fonts() (err error) {
 }
 
 // render renders the background image and the rendered text onto the window.
-func render(textImg *win.Image) (err error) {
+func render(win wandi.Window, textImg *win.Image) (err error) {
 	// Draw the entire background image onto the screen starting at the top left
 	// point (0, 0).
 	dp := image.ZP
@@ -110,7 +111,7 @@ func render(textImg *win.Image) (err error) {
 }
 
 // renderFPS renders the average FPS to the upper left corner of the window.
-func renderFPS(start time.Time, frames float64) (err error) {
+func renderFPS(win wandi.Window, start time.Time, frames float64) (err error) {
 	fps := getFPS(start, frames)
 	fpsImg, err := fpsFont.Render(fps)
 	if err != nil {

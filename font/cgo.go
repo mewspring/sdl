@@ -22,21 +22,9 @@ func cColor(c color.Color) (cColor C.SDL_Color) {
 	return cColor
 }
 
-// getError returns the last error message.
-func getError() (err error) {
+// getTTFError returns the last error message.
+func getTTFError() (err error) {
 	return errors.New(C.GoString(C.TTF_GetError()))
-}
-
-// winImage returns a *win.Image corresponding to the provided SDL surface.
-func winImage(s *C.SDL_Surface) *win.Image {
-	// The SDL surface of win.Image isn't exported and it shouldn't be. Therefore
-	// we use unsafe to keep the API clean.
-	img := &image{
-		Width:  int(s.w),
-		Height: int(s.h),
-		s:      s,
-	}
-	return (*win.Image)(unsafe.Pointer(img))
 }
 
 // image is identical to the win.Image structure. It is used in conjunction with
@@ -44,7 +32,19 @@ func winImage(s *C.SDL_Surface) *win.Image {
 // structure.
 type image struct {
 	// The width and height of the image.
-	Width, Height int
-	// C surface pointer.
+	w, h int
+	// Pointer to the C SDL_Surface of the image.
 	s *C.SDL_Surface
+}
+
+// winImage returns a *win.Image corresponding to the provided SDL surface.
+func winImage(s *C.SDL_Surface) *win.Image {
+	// The SDL surface of win.Image isn't exported and it shouldn't be. Therefore
+	// we use unsafe to keep the API clean.
+	img := &image{
+		w: int(s.w),
+		h: int(s.h),
+		s: s,
+	}
+	return (*win.Image)(unsafe.Pointer(img))
 }

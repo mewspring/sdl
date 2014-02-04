@@ -6,19 +6,22 @@ package win
 import "C"
 
 import (
+	"fmt"
 	"image"
 	"image/draw"
 	"reflect"
 	"unsafe"
 
 	"github.com/mewkiz/pkg/imgutil"
+	"github.com/mewmew/wandi"
 )
 
-// An Image is a collection of pixels.
+// An Image is a mutable collection of pixels, whose memory can be freed. It
+// implements the wandi.Image interface.
 type Image struct {
 	// The width and height of the image.
-	Width, Height int
-	// C surface pointer.
+	w, h int
+	// Pointer to the C SDL_Surface of the image.
 	s *C.SDL_Surface
 }
 
@@ -26,9 +29,16 @@ type Image struct {
 //
 // Note: The Free method of the image should be called when finished using it.
 func NewImage(width, height int) (img *Image, err error) {
-	img = &Image{
-		Width:  width,
-		Height: height,
+	return newImage(width, height)
+}
+
+// newImage returns a new image of the specified dimensions.
+//
+// Note: The Free method of the image should be called when finished using it.
+func newImage(width, height int) (sdlImg *Image, err error) {
+	sdlImg = &Image{
+		w: width,
+		h: height,
 	}
 	// Red, green blue and alpha masks.
 	var r, g, b, a C.Uint32
@@ -43,11 +53,11 @@ func NewImage(width, height int) (img *Image, err error) {
 		b = 0x00FF0000
 		a = 0xFF000000
 	}
-	img.s = C.SDL_CreateRGBSurface(0, C.int(width), C.int(height), 32, r, g, b, a)
-	if img.s == nil {
-		return nil, getError()
+	sdlImg.s = C.SDL_CreateRGBSurface(0, C.int(width), C.int(height), 32, r, g, b, a)
+	if sdlImg.s == nil {
+		return nil, getSDLError()
 	}
-	return img, nil
+	return sdlImg, nil
 }
 
 // LoadImage loads the provided image file and returns it as an image.
@@ -68,10 +78,11 @@ func LoadImage(imgPath string) (img *Image, err error) {
 func ReadImage(src image.Image) (img *Image, err error) {
 	rect := src.Bounds()
 	width, height := rect.Dx(), rect.Dy()
-	img, err = NewImage(width, height)
+	sdlImg, err := newImage(width, height)
 	if err != nil {
 		return nil, err
 	}
+
 	var pix []uint8
 	switch i := src.(type) {
 	case *image.NRGBA:
@@ -82,11 +93,11 @@ func ReadImage(src image.Image) (img *Image, err error) {
 		// An alternative is to use the default fallback. If so benchmark first.
 		pix = i.Pix
 	default:
-		copyPixels(img, src)
-		return img, nil
+		copyPixels(sdlImg, src)
+		return sdlImg, nil
 	}
-	C.memcpy(img.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
-	return img, nil
+	C.memcpy(sdlImg.s.pixels, unsafe.Pointer(&pix[0]), C.size_t(len(pix)))
+	return sdlImg, nil
 }
 
 // copyPixels copies the pixels of the src image to the dst SDL surface. It uses
@@ -97,9 +108,9 @@ func ReadImage(src image.Image) (img *Image, err error) {
 func copyPixels(dst *Image, src image.Image) {
 	// stride is the size in bytes of each line. The size of an individual
 	// pixel is 4 bytes.
-	stride := dst.Width * 4
+	stride := dst.w * 4
 	// size is the total size in bytes of the pixel data.
-	size := dst.Height * stride
+	size := dst.h * stride
 	sh := reflect.SliceHeader{
 		Data: uintptr(dst.s.pixels),
 		Len:  size,
@@ -108,7 +119,7 @@ func copyPixels(dst *Image, src image.Image) {
 	// dstPix is a byte slice which points to the memory of the surface's pixels.
 	dstPix := *(*[]byte)(unsafe.Pointer(&sh))
 
-	dstRect := image.Rect(0, 0, dst.Width, dst.Height)
+	dstRect := image.Rect(0, 0, dst.w, dst.h)
 	dstImg := &image.NRGBA{
 		Pix:    dstPix,
 		Stride: stride,
@@ -118,25 +129,39 @@ func copyPixels(dst *Image, src image.Image) {
 }
 
 // Free frees the image.
-func (img *Image) Free() {
-	C.SDL_FreeSurface(img.s)
+func (sdlImg *Image) Free() {
+	C.SDL_FreeSurface(sdlImg.s)
 }
 
 // Draw draws the entire src image onto the dst image starting at the
 // destination point dp.
-func (dst *Image) Draw(dp image.Point, src *Image) (err error) {
-	dr := image.Rect(dp.X, dp.Y, dp.X+src.Width, dp.Y+src.Height)
-	return dst.DrawRect(dr, src, image.ZP)
+func (dst *Image) Draw(dp image.Point, src wandi.Image) (err error) {
+	sdlSrc, ok := src.(*Image)
+	if !ok {
+		return fmt.Errorf("Image.DrawRect: unsupported image type %T", src)
+	}
+	dr := image.Rect(dp.X, dp.Y, dp.X+sdlSrc.w, dp.Y+sdlSrc.h)
+	return dst.drawRect(dr, sdlSrc, image.ZP)
 }
 
 // DrawRect fills the destination rectangle dr of the dst image with
 // corresponding pixels from the src image starting at the source point sp.
-func (dst *Image) DrawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
+func (dst *Image) DrawRect(dr image.Rectangle, src wandi.Image, sp image.Point) (err error) {
+	sdlSrc, ok := src.(*Image)
+	if !ok {
+		return fmt.Errorf("Image.DrawRect: unsupported image type %T", src)
+	}
+	return dst.drawRect(dr, sdlSrc, sp)
+}
+
+// drawRect fills the destination rectangle dr of the dst image with
+// corresponding pixels from the src image starting at the source point sp.
+func (dst *Image) drawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
 	sr := image.Rect(sp.X, sp.Y, sp.X+dr.Dx(), sp.Y+dr.Dy())
 	srcRect := cRect(sr)
 	dstRect := cRect(dr)
 	if C.SDL_BlitSurface(src.s, srcRect, dst.s, dstRect) != 0 {
-		return getError()
+		return getSDLError()
 	}
 	return nil
 }

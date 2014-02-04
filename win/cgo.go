@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// cRect converts a Go image.Rectangle to a C SDL_Rect.
+// cRect returns a C SDL_Rect based on the provided Go image.Rectangle.
 func cRect(rect image.Rectangle) (cRect *C.SDL_Rect) {
 	if rect == image.ZR {
 		return nil
@@ -24,8 +24,8 @@ func cRect(rect image.Rectangle) (cRect *C.SDL_Rect) {
 	return cRect
 }
 
-// getError returns the last error message.
-func getError() (err error) {
+// getSDLError returns the last error message.
+func getSDLError() (err error) {
 	return errors.New(C.GoString(C.SDL_GetError()))
 }
 

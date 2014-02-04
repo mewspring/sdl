@@ -12,7 +12,8 @@ import (
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/font"
 	"github.com/mewmew/sdl/font/fontutil"
-	"github.com/mewmew/sdl/win"
+	window "github.com/mewmew/sdl/win"
+	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )
 
@@ -31,7 +32,7 @@ Go is expressive, concise, clean, and efficient. Its concurrency mechanisms make
 // box.
 func boxes() (err error) {
 	// Open the window.
-	err = win.Open(640, 480, win.Resizeable)
+	win, err := window.Open(640, 480, window.Resizeable)
 	if err != nil {
 		return err
 	}
@@ -44,7 +45,7 @@ func boxes() (err error) {
 	}
 
 	// Load the background image.
-	bg, err := win.LoadImage(dataDir + "/bg.png")
+	bg, err := window.LoadImage(dataDir + "/bg.png")
 	if err != nil {
 		return err
 	}
@@ -52,7 +53,7 @@ func boxes() (err error) {
 
 	// Load the gopher image.
 	// ref: http://img.stanleylieber.com/?tags=golang
-	goper, err := win.LoadImage(dataDir + "/gopher.png")
+	goper, err := window.LoadImage(dataDir + "/gopher.png")
 	if err != nil {
 		return err
 	}
@@ -76,7 +77,7 @@ func boxes() (err error) {
 	}
 
 	// Render the background, gopher and text onto the window.
-	err = render(bg, goper, text)
+	err = render(win, bg, goper, text)
 	if err != nil {
 		return err
 	}
@@ -91,7 +92,7 @@ func boxes() (err error) {
 				return nil
 			case we.Resize:
 				// Render the background, gopher and text onto the window.
-				err = render(bg, goper, text)
+				err = render(win, bg, goper, text)
 				if err != nil {
 					return err
 				}
@@ -110,7 +111,7 @@ func boxes() (err error) {
 }
 
 // render renders the background image and the text onto the window.
-func render(bg, gopher, text *win.Image) (err error) {
+func render(win wandi.Window, bg, gopher, text *window.Image) (err error) {
 	// Render the background onto the window starting at the top left corner
 	// (0, 0).
 	dp := image.ZP

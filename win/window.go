@@ -1,30 +1,20 @@
-// Package win handles window creation, drawing and events. The window events
-// are defined in a dedicated package located at:
-//    github.com/mewmew/we
+// Package win handles window creation, event handling and image drawing.
 //
-// The library uses a small subset of the features provided by SDL version 2.0.
-// For the sake of simplicity support for multiple windows has intentionally
-// been left out.
+// The library uses a small subset of the features provided by the SDL library
+// version 2.0 [1].
+//
+// [1]: http://libsdl.org/
 package win
 
 // #cgo pkg-config: sdl2
-// #include <stdlib.h>
-// #include <string.h>
 // #include <SDL2/SDL.h>
-//
-// static SDL_Rect * makeRectArray(int n) {
-//    return calloc(n, sizeof(SDL_Rect));
-// }
-//
-// static void setArrayRect(SDL_Rect *rects, SDL_Rect *rect, int i) {
-//    void *dst = rects + i*sizeof(SDL_Rect);
-//    memcpy(dst, rect, sizeof(SDL_Rect));
-// }
 import "C"
 
 import (
 	"image"
-	"unsafe"
+	"image/color"
+
+	"github.com/mewmew/wandi"
 )
 
 // WindowFlag is a bitfield of window flags.
@@ -38,23 +28,21 @@ const (
 	FullScreen WindowFlag = C.SDL_WINDOW_FULLSCREEN
 )
 
-// w represents the graphics window which is opened through a call to Open. It
-// is this single window that is utilized throughout the entire library.
-var w *C.SDL_Window
+// A sdlWindow represents a graphical window capable of handling draw operations
+// and window events.
+type sdlWindow struct {
+	// Pointer to the C SDL_Window of the window.
+	w *C.SDL_Window
+}
 
 // Open opens a window with the specified dimensions and optional window flags.
-// Only one window can be open at the same time. It is this single window that
-// is utilized throughout the entire library. By default the window is not
-// resizeable.
+// By default the window is not resizeable.
 //
-// Note: The Close function must be called when finished using the window.
-func Open(width, height int, flags ...WindowFlag) (err error) {
-	if w != nil {
-		panic("win.Open: the window has already been opened.")
-	}
+// Note: The Close method of the window must be called when finished using it.
+func Open(width, height int, flags ...WindowFlag) (win wandi.Window, err error) {
 	// Initialize the SDL video subsystem.
 	if C.SDL_Init(C.SDL_INIT_VIDEO) != 0 {
-		return getError()
+		return nil, getSDLError()
 	}
 
 	// Open the window.
@@ -65,71 +53,65 @@ func Open(width, height int, flags ...WindowFlag) (err error) {
 	title := C.CString("untitled")
 	x := C.int(C.SDL_WINDOWPOS_UNDEFINED)
 	y := C.int(C.SDL_WINDOWPOS_UNDEFINED)
-	w = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), cFlags)
-	if w == nil {
-		return getError()
+	sdlWin := new(sdlWindow)
+	sdlWin.w = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), cFlags)
+	if sdlWin.w == nil {
+		return nil, getSDLError()
 	}
 
 	// Make sure the window surface is valid for updates.
-	s := C.SDL_GetWindowSurface(w)
+	s := C.SDL_GetWindowSurface(sdlWin.w)
 	if s == nil {
-		return getError()
+		return nil, getSDLError()
 	}
 
-	return nil
+	return sdlWin, nil
 }
 
 // Close closes the window.
-func Close() {
-	C.SDL_DestroyWindow(w)
-	w = nil
+func (sdlWin *sdlWindow) Close() {
+	C.SDL_DestroyWindow(sdlWin.w)
 	C.SDL_Quit()
 }
 
 // SetTitle sets the title of the window.
-func SetTitle(title string) {
-	C.SDL_SetWindowTitle(w, C.CString(title))
+func (sdlWin *sdlWindow) SetTitle(title string) {
+	C.SDL_SetWindowTitle(sdlWin.w, C.CString(title))
 }
 
 // Screen returns the image associated with the window.
-func Screen() (screen *Image, err error) {
-	screen = new(Image)
-	screen.s = C.SDL_GetWindowSurface(w)
-	if screen.s == nil {
-		return nil, getError()
+func (sdlWin *sdlWindow) Screen() (screen wandi.Image, err error) {
+	return sdlWin.screen()
+}
+
+// screen returns the image associated with the window.
+func (sdlWin *sdlWindow) screen() (sdlScreen *Image, err error) {
+	sdlScreen = new(Image)
+	sdlScreen.s = C.SDL_GetWindowSurface(sdlWin.w)
+	if sdlScreen.s == nil {
+		return nil, getSDLError()
 	}
-	screen.Width = int(screen.s.w)
-	screen.Height = int(screen.s.h)
-	return screen, nil
+	sdlScreen.w = int(sdlScreen.s.w)
+	sdlScreen.h = int(sdlScreen.s.h)
+	return sdlScreen, nil
 }
 
 // Update copies the entire window image onto the screen.
-func Update() (err error) {
-	if C.SDL_UpdateWindowSurface(w) != 0 {
-		return getError()
+func (sdlWin *sdlWindow) Update() (err error) {
+	if C.SDL_UpdateWindowSurface(sdlWin.w) != 0 {
+		return getSDLError()
 	}
 	return nil
 }
 
-// UpdateRects copies a portion of the window image onto the screen as specified
-// by rects.
-func UpdateRects(rects []image.Rectangle) (err error) {
-	cRects := C.makeRectArray(C.int(len(rects)))
-	defer C.SDL_free(unsafe.Pointer(cRects))
-	for i, rect := range rects {
-		cRect := cRect(rect)
-		C.setArrayRect(cRects, cRect, C.int(i))
-	}
-	if C.SDL_UpdateWindowSurfaceRects(w, cRects, C.int(len(rects))) != 0 {
-		return getError()
-	}
-	return nil
+func (sdlWin *sdlWindow) Clear(c color.Color) (err error) {
+	panic("sdlWindow.Clear: not yet implemented.")
 }
 
 // Draw draws the entire src image onto the window starting at the destination
 // point dp.
-func Draw(dp image.Point, src *Image) (err error) {
-	dst, err := Screen()
+func (sdlWin *sdlWindow) Draw(dp image.Point, src wandi.Image) (err error) {
+	dst, err := sdlWin.screen()
 	if err != nil {
 		return err
 	}
@@ -138,8 +120,8 @@ func Draw(dp image.Point, src *Image) (err error) {
 
 // DrawRect fills the destination rectangle dr of the window with corresponding
 // pixels from the src image starting at the source point sp.
-func DrawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
-	dst, err := Screen()
+func (sdlWin *sdlWindow) DrawRect(dr image.Rectangle, src wandi.Image, sp image.Point) (err error) {
+	dst, err := sdlWin.screen()
 	if err != nil {
 		return err
 	}

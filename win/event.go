@@ -43,11 +43,10 @@ import (
 )
 
 // PollEvent returns a pending event from the event queue or nil if the queue
-// was empty. The various event types are defined at:
-//    github.com/mewmew/we
+// was empty.
 //
 // Note: PollEvent must be called from the same thread that created the window.
-func PollEvent() (event interface{}) {
+func (_ *sdlWindow) PollEvent() (event we.Event) {
 	e := new(C.SDL_Event)
 	// Poll the event queue until we locate a non-nil event or the queue is
 	// empty.
@@ -65,7 +64,7 @@ func PollEvent() (event interface{}) {
 
 // goEvent returns the corresponding Go event for the provided SDL_Event or nil
 // if no such Go event exists.
-func goEvent(cEvent *C.SDL_Event) (event interface{}) {
+func goEvent(cEvent *C.SDL_Event) (event we.Event) {
 	typ := C.getEventType(cEvent)
 	switch typ {
 	// Close events.

@@ -10,6 +10,7 @@ import (
 
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/win"
+	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )
 
@@ -24,7 +25,7 @@ func main() {
 // It also gives an example of a basic event loop.
 func simple() (err error) {
 	// Open the window.
-	err = win.Open(640, 480, win.Resizeable)
+	win, err := win.Open(640, 480, win.Resizeable)
 	if err != nil {
 		return err
 	}
@@ -43,7 +44,7 @@ func simple() (err error) {
 	frames := 0
 
 	// Render the images onto the window.
-	err = render()
+	err = render(win)
 	if err != nil {
 		return err
 	}
@@ -67,7 +68,7 @@ func simple() (err error) {
 				return nil
 			case we.Resize:
 				// Rerender the images onto the window after resize events.
-				err = render()
+				err = render(win)
 				if err != nil {
 					return err
 				}
@@ -80,7 +81,7 @@ func simple() (err error) {
 }
 
 // render renders the background and foreground images onto the window.
-func render() (err error) {
+func render(win wandi.Window) (err error) {
 	// Draw the entire background image onto the screen starting at the top left
 	// point (0, 0).
 	dp := image.ZP
