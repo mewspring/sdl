@@ -13,6 +13,7 @@ import "C"
 import (
 	"image"
 	"image/color"
+	"log"
 
 	"github.com/mewmew/wandi"
 )
@@ -74,6 +75,20 @@ func (sdlWin *sdlWindow) Close() {
 	C.SDL_Quit()
 }
 
+// Width returns the width of the window.
+func (sdlWin *sdlWindow) Width() int {
+	var width C.int
+	C.SDL_GetWindowSize(sdlWin.w, &width, nil)
+	return int(width)
+}
+
+// Height returns the height of the window.
+func (sdlWin *sdlWindow) Height() int {
+	var height C.int
+	C.SDL_GetWindowSize(sdlWin.w, nil, &height)
+	return int(height)
+}
+
 // SetTitle sets the title of the window.
 func (sdlWin *sdlWindow) SetTitle(title string) {
 	C.SDL_SetWindowTitle(sdlWin.w, C.CString(title))
@@ -97,14 +112,13 @@ func (sdlWin *sdlWindow) screen() (sdlScreen *Image, err error) {
 }
 
 // Update copies the entire window image onto the screen.
-func (sdlWin *sdlWindow) Update() (err error) {
+func (sdlWin *sdlWindow) Update() {
 	if C.SDL_UpdateWindowSurface(sdlWin.w) != 0 {
-		return getSDLError()
+		log.Println(getSDLError())
 	}
-	return nil
 }
 
-func (sdlWin *sdlWindow) Clear(c color.Color) (err error) {
+func (sdlWin *sdlWindow) Clear(c color.Color) {
 	panic("sdlWindow.Clear: not yet implemented.")
 }
 
@@ -118,12 +132,12 @@ func (sdlWin *sdlWindow) Draw(dp image.Point, src wandi.Image) (err error) {
 	return dst.Draw(dp, src)
 }
 
-// DrawRect fills the destination rectangle dr of the window with corresponding
-// pixels from the src image starting at the source point sp.
-func (sdlWin *sdlWindow) DrawRect(dr image.Rectangle, src wandi.Image, sp image.Point) (err error) {
+// DrawRect draws a subset of the src image, as defined by the source rectangle
+// sr, onto the window starting at the destination point dp.
+func (sdlWin *sdlWindow) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
 	dst, err := sdlWin.screen()
 	if err != nil {
 		return err
 	}
-	return dst.DrawRect(dr, src, sp)
+	return dst.DrawRect(dp, src, sr)
 }

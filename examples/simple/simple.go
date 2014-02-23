@@ -52,10 +52,7 @@ func simple() (err error) {
 	// Update and event loop.
 	for {
 		// Display window updates on screen.
-		err = win.Update()
-		if err != nil {
-			return err
-		}
+		win.Update()
 		frames++
 
 		// Poll events until the event queue is empty.
@@ -93,9 +90,9 @@ func render(win wandi.Window) (err error) {
 	// Fill the destination rectangle ((10, 10), (200, 200)) of the screen with
 	// corresponding pixels from the foreground iamge starting at the source
 	// point (70, 70).
-	dr := image.Rect(10, 10, 200, 200)
-	sp := image.Pt(70, 70)
-	err = win.DrawRect(dr, fgImg, sp)
+	dp = image.Pt(10, 10)
+	sr := image.Rect(70, 70, 260, 260)
+	err = win.DrawRect(dp, fgImg, sr)
 	if err != nil {
 		return err
 	}

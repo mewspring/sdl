@@ -133,35 +133,36 @@ func (sdlImg *Image) Free() {
 	C.SDL_FreeSurface(sdlImg.s)
 }
 
+// Width returns the width of the image.
+func (sdlImg *Image) Width() int {
+	return sdlImg.w
+}
+
+// Height returns the height of the image.
+func (sdlImg *Image) Height() int {
+	return sdlImg.h
+}
+
 // Draw draws the entire src image onto the dst image starting at the
 // destination point dp.
 func (dst *Image) Draw(dp image.Point, src wandi.Image) (err error) {
-	sdlSrc, ok := src.(*Image)
-	if !ok {
-		return fmt.Errorf("Image.DrawRect: unsupported image type %T", src)
-	}
-	dr := image.Rect(dp.X, dp.Y, dp.X+sdlSrc.w, dp.Y+sdlSrc.h)
-	return dst.drawRect(dr, sdlSrc, image.ZP)
+	sr := image.Rect(0, 0, src.Width(), src.Height())
+	return dst.DrawRect(dp, src, sr)
 }
 
-// DrawRect fills the destination rectangle dr of the dst image with
-// corresponding pixels from the src image starting at the source point sp.
-func (dst *Image) DrawRect(dr image.Rectangle, src wandi.Image, sp image.Point) (err error) {
-	sdlSrc, ok := src.(*Image)
-	if !ok {
+// DrawRect draws a subset of the src image, as defined by the source rectangle
+// sr, onto the dst image starting at the destination point dp.
+func (dst *Image) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
+	switch srcImg := src.(type) {
+	case *Image:
+		dr := image.Rect(dp.X, dp.Y, dp.X+sr.Dx(), dp.Y+sr.Dy())
+		srcRect := cRect(sr)
+		dstRect := cRect(dr)
+		if C.SDL_BlitSurface(srcImg.s, srcRect, dst.s, dstRect) != 0 {
+			return getSDLError()
+		}
+		return nil
+	default:
 		return fmt.Errorf("Image.DrawRect: unsupported image type %T", src)
 	}
-	return dst.drawRect(dr, sdlSrc, sp)
-}
-
-// drawRect fills the destination rectangle dr of the dst image with
-// corresponding pixels from the src image starting at the source point sp.
-func (dst *Image) drawRect(dr image.Rectangle, src *Image, sp image.Point) (err error) {
-	sr := image.Rect(sp.X, sp.Y, sp.X+dr.Dx(), sp.Y+dr.Dy())
-	srcRect := cRect(sr)
-	dstRect := cRect(dr)
-	if C.SDL_BlitSurface(src.s, srcRect, dst.s, dstRect) != 0 {
-		return getSDLError()
-	}
-	return nil
 }
