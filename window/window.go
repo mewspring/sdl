@@ -4,6 +4,10 @@
 // [1]: http://www.libsdl.org/
 package window
 
+// #cgo pkg-config: sdl2
+// #include <SDL2/SDL.h>
+import "C"
+
 import (
 	"image"
 	"image/color"
@@ -11,21 +15,63 @@ import (
 	"github.com/mewmew/wandi"
 )
 
+// Flag is a bitfield of window flags.
+type Flag uint32
+
+const (
+	// Resizeable states that the window can be resized.
+	Resizeable Flag = C.SDL_WINDOW_RESIZABLE
+	// Fullscreen states that the window is in full screen mode.
+	Fullscreen Flag = C.SDL_WINDOW_FULLSCREEN
+)
+
 // A Window represents a graphical window capable of handling draw operations
 // and window events. It implements the wandi.Window interface.
 type Window struct {
+	win *C.SDL_Window
 }
 
-// Open opens a new window of the specified dimensions.
+// winCount represent the number of active windows.
+var winCount int
+
+// Open opens a new window of the specified dimensions and optional window
+// flags. By default the window is not resizeable.
 //
 // Note: The Close method of the window must be called when finished using it.
-func Open(width, height int) (win Window, err error) {
-	panic("not yet implemented")
+func Open(width, height int, flags ...Flag) (win Window, err error) {
+	// Initialize the video subsystem.
+	if winCount == 0 {
+		if C.SDL_InitSubSystem(C.SDL_INIT_VIDEO) != 0 {
+			return Window{}, getLastError()
+		}
+	}
+
+	// Open the window.
+	var cFlags C.Uint32
+	for _, flag := range flags {
+		cFlags |= C.Uint32(flag)
+	}
+	title := C.CString("untitled")
+	x := C.int(C.SDL_WINDOWPOS_UNDEFINED)
+	y := C.int(C.SDL_WINDOWPOS_UNDEFINED)
+	win.win = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), cFlags)
+	if win.win == nil {
+		return Window{}, getLastError()
+	}
+	winCount++
+
+	return win, nil
 }
 
 // Close closes the window.
 func (win Window) Close() {
-	panic("not yet implemented")
+	C.SDL_DestroyWindow(win.win)
+	winCount--
+
+	// Terminate the video subsystem.
+	if winCount == 0 {
+		C.SDL_QuitSubSystem(C.SDL_INIT_VIDEO)
+	}
 }
 
 // SetTitle sets the title of the window.
