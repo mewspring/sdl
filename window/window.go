@@ -18,6 +18,7 @@ import (
 // Flag is a bitfield of window flags.
 type Flag uint32
 
+// Window flags.
 const (
 	// Resizeable states that the window can be resized.
 	Resizeable Flag = C.SDL_WINDOW_RESIZABLE
@@ -29,6 +30,8 @@ const (
 // and window events. It implements the wandi.Window interface.
 type Window struct {
 	win *C.SDL_Window
+	// The rendering context associated with the window.
+	ren *C.SDL_Renderer
 }
 
 // winCount represent the number of active windows.
@@ -44,7 +47,10 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 		if C.SDL_InitSubSystem(C.SDL_INIT_VIDEO) != 0 {
 			return Window{}, getLastError()
 		}
+		// TODO(u): Add a goroutine which does event polling and sends the events
+		// to their corresponding window.
 	}
+	winCount++
 
 	// Open the window.
 	var cFlags C.Uint32
@@ -58,17 +64,27 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 	if win.win == nil {
 		return Window{}, getLastError()
 	}
-	winCount++
+
+	// Create a renderer for the window.
+	win.ren = C.SDL_CreateRenderer(win.win, -1, C.SDL_RENDERER_PRESENTVSYNC)
+	if win.ren == nil {
+		return Window{}, getLastError()
+	}
 
 	return win, nil
 }
 
 // Close closes the window.
 func (win Window) Close() {
-	C.SDL_DestroyWindow(win.win)
-	winCount--
+	if win.ren != nil {
+		C.SDL_DestroyRenderer(win.ren)
+	}
+	if win.win != nil {
+		C.SDL_DestroyWindow(win.win)
+	}
 
 	// Terminate the video subsystem.
+	winCount--
 	if winCount == 0 {
 		C.SDL_QuitSubSystem(C.SDL_INIT_VIDEO)
 	}
@@ -76,7 +92,7 @@ func (win Window) Close() {
 
 // SetTitle sets the title of the window.
 func (win Window) SetTitle(title string) {
-	panic("not yet implemented")
+	C.SDL_SetWindowTitle(win.win, C.CString(title))
 }
 
 // ShowCursor displays or hides the mouse cursor depending on the value of
@@ -87,12 +103,16 @@ func (win Window) ShowCursor(visible bool) {
 
 // Width returns the width of the window.
 func (win Window) Width() int {
-	panic("not yet implemented")
+	var width C.int
+	C.SDL_GetWindowSize(win.win, &width, nil)
+	return int(width)
 }
 
 // Height returns the height of the window.
 func (win Window) Height() int {
-	panic("not yet implemented")
+	var height C.int
+	C.SDL_GetWindowSize(win.win, nil, &height)
+	return int(height)
 }
 
 // Draw draws the entire src image onto the window starting at the destination
@@ -109,10 +129,12 @@ func (win Window) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) 
 
 // Fill fills the entire window with the provided color.
 func (win Window) Fill(c color.Color) {
-	panic("not yet implemented")
+	r, g, b, a := c.RGBA()
+	C.SDL_SetRenderDrawColor(win.ren, C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a))
+	C.SDL_RenderClear(win.ren)
 }
 
 // Display displays what has been rendered so far to the window.
 func (win Window) Display() {
-	panic("not yet implemented")
+	C.SDL_RenderPresent(win.ren)
 }
