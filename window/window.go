@@ -11,6 +11,7 @@ import "C"
 import (
 	"image"
 	"image/color"
+	"log"
 
 	"github.com/mewmew/wandi"
 )
@@ -98,7 +99,13 @@ func (win Window) SetTitle(title string) {
 // ShowCursor displays or hides the mouse cursor depending on the value of
 // visible. It is visible by default.
 func (win Window) ShowCursor(visible bool) {
-	panic("not yet implemented")
+	toggle := C.int(0)
+	if visible {
+		toggle = 1
+	}
+	if C.SDL_ShowCursor(toggle) < 0 {
+		log.Println(getLastError())
+	}
 }
 
 // Width returns the width of the window.
