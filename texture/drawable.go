@@ -104,15 +104,15 @@ func (dst Drawable) Draw(dp image.Point, src wandi.Image) (err error) {
 	return dst.DrawRect(dp, src, sr)
 }
 
-// texDrawRect draws a subset of the src texture, as defined by the source
+// drawRect draws a subset of the src texture, as defined by the source
 // rectangle sr, onto the dst texture starting at the destination point dp.
-func texDrawRect(dst *C.SDL_Texture, dp image.Point, src *C.SDL_Texture, sr image.Rectangle) (err error) {
+func drawRect(dst *C.SDL_Texture, dp image.Point, src *C.SDL_Texture, sr image.Rectangle) (err error) {
 	ren, err := getRenderer()
 	if err != nil {
 		return err
 	}
 	if C.SDL_SetRenderTarget(ren, dst) != 0 {
-		return fmt.Errorf("Drawable.DrawRect: %v", getLastError())
+		return fmt.Errorf("texture.drawRect: %v", getLastError())
 	}
 	defer C.SDL_SetRenderTarget(ren, nil)
 	width, height := C.int(sr.Dx()), C.int(sr.Dy())
@@ -128,7 +128,9 @@ func texDrawRect(dst *C.SDL_Texture, dp image.Point, src *C.SDL_Texture, sr imag
 		w: width,
 		h: height,
 	}
-	C.SDL_RenderCopy(ren, src, srcrect, dstrect)
+	if C.SDL_RenderCopy(ren, src, srcrect, dstrect) != 0 {
+		return fmt.Errorf("texture.drawRect: %v", getLastError())
+	}
 	return nil
 }
 
@@ -137,9 +139,9 @@ func texDrawRect(dst *C.SDL_Texture, dp image.Point, src *C.SDL_Texture, sr imag
 func (dst Drawable) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
 	switch srcImg := src.(type) {
 	case Drawable:
-		return texDrawRect(dst.tex, dp, srcImg.tex, sr)
+		return drawRect(dst.tex, dp, srcImg.tex, sr)
 	case Image:
-		return texDrawRect(dst.tex, dp, srcImg.tex, sr)
+		return drawRect(dst.tex, dp, srcImg.tex, sr)
 	default:
 		return fmt.Errorf("Drawable.DrawRect: source type %T not yet supported", src)
 	}
