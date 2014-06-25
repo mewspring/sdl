@@ -58,21 +58,3 @@ func create(width, height int, drawable bool) (tex *C.SDL_Texture, err error) {
 	}
 	return tex, nil
 }
-
-// newImage returns a new read-only texture of the specified dimensions.
-func newImage(width, height int) (tex Image, err error) {
-	tex.tex, err = create(width, height, false)
-	if err != nil {
-		return Image{}, err
-	}
-	return tex, nil
-}
-
-// newDrawable returns a new drawable texture of the specified dimensions.
-func newDrawable(width, height int) (tex Drawable, err error) {
-	tex.tex, err = create(width, height, true)
-	if err != nil {
-		return Drawable{}, err
-	}
-	return tex, nil
-}

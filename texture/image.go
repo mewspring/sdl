@@ -21,6 +21,15 @@ type Image struct {
 	tex *C.SDL_Texture
 }
 
+// newImage creates a read-only texture of the specified dimensions.
+func newImage(width, height int) (tex Image, err error) {
+	tex.tex, err = create(width, height, false)
+	if err != nil {
+		return Image{}, err
+	}
+	return tex, nil
+}
+
 // Load loads the provided file and converts it into a read-only texture.
 //
 // Note: The Free method of the texture must be called when finished using it.
@@ -48,7 +57,7 @@ func Read(src image.Image) (tex Image, err error) {
 		return Read(fallback(src))
 	}
 
-	// Create a new texture based on the pixels of the src image.
+	// Create a read-only texture based on the pixels of the src image.
 	tex, err = newImage(width, height)
 	if err != nil {
 		return Image{}, err
