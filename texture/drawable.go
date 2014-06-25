@@ -100,13 +100,50 @@ func (tex Drawable) Height() int {
 // Draw draws the entire src image onto the dst texture starting at the
 // destination point dp.
 func (dst Drawable) Draw(dp image.Point, src wandi.Image) (err error) {
-	panic("not yet implemented")
+	sr := image.Rect(0, 0, src.Width(), src.Height())
+	return dst.DrawRect(dp, src, sr)
+}
+
+// texDrawRect draws a subset of the src texture, as defined by the source
+// rectangle sr, onto the dst texture starting at the destination point dp.
+func texDrawRect(dst *C.SDL_Texture, dp image.Point, src *C.SDL_Texture, sr image.Rectangle) (err error) {
+	ren, err := getRenderer()
+	if err != nil {
+		return err
+	}
+	if C.SDL_SetRenderTarget(ren, dst) != 0 {
+		return fmt.Errorf("Drawable.DrawRect: %v", getLastError())
+	}
+	defer C.SDL_SetRenderTarget(ren, nil)
+	width, height := C.int(sr.Dx()), C.int(sr.Dy())
+	srcrect := &C.SDL_Rect{
+		x: C.int(sr.Min.X),
+		y: C.int(sr.Min.Y),
+		w: width,
+		h: height,
+	}
+	dstrect := &C.SDL_Rect{
+		x: C.int(dp.X),
+		y: C.int(dp.Y),
+		w: width,
+		h: height,
+	}
+	C.SDL_RenderCopy(ren, src, srcrect, dstrect)
+	return nil
 }
 
 // DrawRect draws a subset of the src image, as defined by the source rectangle
 // sr, onto the dst texture starting at the destination point dp.
 func (dst Drawable) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
-	panic("not yet implemented")
+	switch srcImg := src.(type) {
+	case Drawable:
+		return texDrawRect(dst.tex, dp, srcImg.tex, sr)
+	case Image:
+		return texDrawRect(dst.tex, dp, srcImg.tex, sr)
+	default:
+		return fmt.Errorf("Drawable.DrawRect: source type %T not yet supported", src)
+	}
+	return nil
 }
 
 // Fill fills the entire texture with the provided color.
