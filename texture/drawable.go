@@ -149,8 +149,22 @@ func (dst Drawable) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle
 }
 
 // Fill fills the entire texture with the provided color.
-func (tex Drawable) Fill(c color.Color) {
-	panic("not yet implemented")
+func (dst Drawable) Fill(c color.Color) {
+	ren, err := getRenderer()
+	if err != nil {
+		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+	}
+	if C.SDL_SetRenderTarget(ren, dst.tex) != 0 {
+		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+	}
+	defer C.SDL_SetRenderTarget(ren, nil)
+	r, g, b, a := c.RGBA()
+	if C.SDL_SetRenderDrawColor(ren, C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)) != 0 {
+		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+	}
+	if C.SDL_RenderClear(ren) != 0 {
+		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+	}
 }
 
 // Image returns an image.Image representation of the texture.

@@ -165,8 +165,12 @@ func (win Window) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) 
 // Fill fills the entire window with the provided color.
 func (win Window) Fill(c color.Color) {
 	r, g, b, a := c.RGBA()
-	C.SDL_SetRenderDrawColor(win.ren, C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a))
-	C.SDL_RenderClear(win.ren)
+	if C.SDL_SetRenderDrawColor(win.ren, C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)) != 0 {
+		log.Fatalf("Window.Fill: %v\n", getLastError())
+	}
+	if C.SDL_RenderClear(win.ren) != 0 {
+		log.Fatalf("Window.Fill: %v\n", getLastError())
+	}
 }
 
 // Display displays what has been rendered so far to the window.
