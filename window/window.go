@@ -9,6 +9,7 @@ package window
 import "C"
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -149,9 +150,14 @@ func (win Window) Draw(dp image.Point, src wandi.Image) (err error) {
 // sr, onto the window starting at the destination point dp.
 func (win Window) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
 	switch srcImg := src.(type) {
+	case texture.Drawable:
+		tex := drawableTexture(srcImg)
+		C.SDL_RenderCopy(win.ren, tex, nil, nil)
 	case texture.Image:
 		tex := imageTexture(srcImg)
 		C.SDL_RenderCopy(win.ren, tex, nil, nil)
+	default:
+		return fmt.Errorf("Window.DrawRect: source type %T not yet supported", src)
 	}
 	return nil
 }
