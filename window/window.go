@@ -12,7 +12,9 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"unsafe"
 
+	"github.com/mewmew/sdl/texture"
 	"github.com/mewmew/wandi"
 )
 
@@ -61,6 +63,8 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 	title := C.CString("untitled")
 	x := C.int(C.SDL_WINDOWPOS_UNDEFINED)
 	y := C.int(C.SDL_WINDOWPOS_UNDEFINED)
+	// TODO(u): Make use of SDL_SetHint and SDL_RenderSetLogicalSize for
+	// full screen windows.
 	win.win = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), cFlags)
 	if win.win == nil {
 		return Window{}, getLastError()
@@ -70,6 +74,11 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 	win.ren = C.SDL_CreateRenderer(win.win, -1, C.SDL_RENDERER_PRESENTVSYNC)
 	if win.ren == nil {
 		return Window{}, getLastError()
+	}
+
+	// Use the rendering context of the first window for texture creation.
+	if winCount == 1 {
+		texture.SetRenderer(unsafe.Pointer(win.ren))
 	}
 
 	return win, nil
@@ -87,6 +96,8 @@ func (win Window) Close() {
 	// Terminate the video subsystem.
 	winCount--
 	if winCount == 0 {
+		// Deactivate the rendering context when the last window is closed.
+		texture.SetRenderer(nil)
 		C.SDL_QuitSubSystem(C.SDL_INIT_VIDEO)
 	}
 }
@@ -94,6 +105,16 @@ func (win Window) Close() {
 // SetTitle sets the title of the window.
 func (win Window) SetTitle(title string) {
 	C.SDL_SetWindowTitle(win.win, C.CString(title))
+}
+
+// Show displays or hides the window depending on the value of visible. It is
+// visible by default.
+func (win Window) Show(visible bool) {
+	if visible {
+		C.SDL_ShowWindow(win.win)
+	} else {
+		C.SDL_HideWindow(win.win)
+	}
 }
 
 // ShowCursor displays or hides the mouse cursor depending on the value of
@@ -125,13 +146,19 @@ func (win Window) Height() int {
 // Draw draws the entire src image onto the window starting at the destination
 // point dp.
 func (win Window) Draw(dp image.Point, src wandi.Image) (err error) {
-	panic("not yet implemented")
+	sr := image.Rect(0, 0, win.Width(), win.Height())
+	return win.DrawRect(dp, src, sr)
 }
 
 // DrawRect draws a subset of the src image, as defined by the source rectangle
 // sr, onto the window starting at the destination point dp.
 func (win Window) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
-	panic("not yet implemented")
+	switch srcImg := src.(type) {
+	case texture.Image:
+		tex := imageTexture(srcImg)
+		C.SDL_RenderCopy(win.ren, tex, nil, nil)
+	}
+	return nil
 }
 
 // Fill fills the entire window with the provided color.
