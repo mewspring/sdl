@@ -75,11 +75,7 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 	if win.ren == nil {
 		return Window{}, getLastError()
 	}
-
-	// Use the rendering context of the first window for texture creation.
-	if winCount == 1 {
-		texture.SetRenderer(unsafe.Pointer(win.ren))
-	}
+	texture.AddRenderer(unsafe.Pointer(win.ren))
 
 	return win, nil
 }
@@ -87,6 +83,7 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 // Close closes the window.
 func (win Window) Close() {
 	if win.ren != nil {
+		texture.DelRenderer(unsafe.Pointer(win.ren))
 		C.SDL_DestroyRenderer(win.ren)
 	}
 	if win.win != nil {
@@ -96,8 +93,6 @@ func (win Window) Close() {
 	// Terminate the video subsystem.
 	winCount--
 	if winCount == 0 {
-		// Deactivate the rendering context when the last window is closed.
-		texture.SetRenderer(nil)
 		C.SDL_QuitSubSystem(C.SDL_INIT_VIDEO)
 	}
 }

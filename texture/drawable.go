@@ -1,5 +1,9 @@
 package texture
 
+// #cgo pkg-config: sdl2
+// #include <SDL2/SDL.h>
+import "C"
+
 import (
 	"image"
 	"image/color"
@@ -10,6 +14,8 @@ import (
 // Drawable represent a drawable texture. It implements the wandi.Drawable and
 // wandi.Image interfaces.
 type Drawable struct {
+	// A drawable GPU texture.
+	tex *C.SDL_Texture
 }
 
 // NewDrawable creates a drawable texture of the specified dimensions.
