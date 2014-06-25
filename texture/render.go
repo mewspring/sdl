@@ -10,13 +10,14 @@ import (
 	"unsafe"
 )
 
-// active keeps track of all active renderers. At least one active rendering
-// context is required for texture creation and drawing operations. A call to
-// window.Open will implicitly add its renderer to the list of active renderers,
-// and a subsequent call to win.Close will remove said renderer.
+// active keeps track of all active renderers.
 var active = make(map[unsafe.Pointer]bool)
 
-// AddRenderer adds the renderer to the list of active renderers.
+// AddRenderer adds the renderer to the list of active renderers. At least one
+// active rendering context is required for texture creation and drawing
+// operations. A call to window.Open will implicitly add its renderer to the
+// list of active renderers, and a subsequent call to win.Close will remove said
+// renderer.
 func AddRenderer(renderer unsafe.Pointer) {
 	if !active[renderer] {
 		active[renderer] = true
