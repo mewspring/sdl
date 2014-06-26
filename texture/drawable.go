@@ -152,7 +152,7 @@ func (dst Drawable) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle
 func (dst Drawable) Fill(c color.Color) {
 	ren, err := getRenderer()
 	if err != nil {
-		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+		log.Fatalln(err)
 	}
 	if C.SDL_SetRenderTarget(ren, dst.tex) != 0 {
 		log.Fatalf("Drawable.Fill: %v\n", getLastError())
@@ -169,5 +169,21 @@ func (dst Drawable) Fill(c color.Color) {
 
 // Image returns an image.Image representation of the texture.
 func (tex Drawable) Image() (img image.Image, err error) {
-	panic("not yet implemented")
+	// TODO(u): The resulting image is upside-down.
+	ren, err := getRenderer()
+	if err != nil {
+		return nil, err
+	}
+	if C.SDL_SetRenderTarget(ren, tex.tex) != 0 {
+		return nil, fmt.Errorf("Drawable.Image: %v", getLastError())
+	}
+	defer C.SDL_SetRenderTarget(ren, nil)
+	rect := image.Rect(0, 0, tex.Width(), tex.Height())
+	dst := image.NewRGBA(rect)
+	format := C.Uint32(C.SDL_PIXELFORMAT_ABGR8888)
+	pix := unsafe.Pointer(&dst.Pix[0])
+	if C.SDL_RenderReadPixels(ren, nil, format, pix, C.int(dst.Stride)) != 0 {
+		return nil, fmt.Errorf("Drawable.Image: %v", getLastError())
+	}
+	return dst, nil
 }
