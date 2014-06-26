@@ -41,6 +41,21 @@ func Load(path string) (tex Image, err error) {
 	return Read(src)
 }
 
+// fallback converts the provided image or subimage into a RGBA image.
+func fallback(src image.Image) *image.RGBA {
+	start := time.Now()
+
+	// Create a new RGBA image and draw the src image onto it.
+	bounds := src.Bounds()
+	dr := image.Rect(0, 0, bounds.Dx(), bounds.Dy())
+	dst := image.NewRGBA(dr)
+	draw.Draw(dst, dr, src, bounds.Min, draw.Src)
+
+	log.Printf("texture.fallback: fallback conversion for non-RGBA image (%T) finished in: %v.\n", src, time.Since(start))
+
+	return dst
+}
+
 // Read reads the provided image and converts it into a read-only texture.
 //
 // Note: The Free method of the texture must be called when finished using it.
@@ -64,25 +79,11 @@ func Read(src image.Image) (tex Image, err error) {
 	}
 	pix := unsafe.Pointer(&rgba.Pix[0])
 	if C.SDL_UpdateTexture(tex.tex, nil, pix, C.int(rgba.Stride)) != 0 {
+		tex.Free()
 		return Image{}, fmt.Errorf("texture.Read: %v", getLastError())
 	}
 
 	return tex, nil
-}
-
-// fallback converts the provided image or subimage into a RGBA image.
-func fallback(src image.Image) *image.RGBA {
-	start := time.Now()
-
-	// Create a new RGBA image and draw the src image onto it.
-	bounds := src.Bounds()
-	dr := image.Rect(0, 0, bounds.Dx(), bounds.Dy())
-	dst := image.NewRGBA(dr)
-	draw.Draw(dst, dr, src, bounds.Min, draw.Src)
-
-	log.Println("texture.fallback: fallback conversion for non-RGBA image (%T) finished in: %v.\n", src, time.Since(start))
-
-	return dst
 }
 
 // Free frees the texture.
@@ -94,7 +95,7 @@ func (tex Image) Free() {
 func (tex Image) Width() int {
 	var width C.int
 	if C.SDL_QueryTexture(tex.tex, nil, nil, &width, nil) != 0 {
-		log.Fatalf("Image.Width: unable to locate texture width; %v\n", getLastError())
+		log.Fatalln("Image.Width: unable to locate texture width;", getLastError())
 	}
 	return int(width)
 }
@@ -103,7 +104,7 @@ func (tex Image) Width() int {
 func (tex Image) Height() int {
 	var height C.int
 	if C.SDL_QueryTexture(tex.tex, nil, nil, nil, &height) != 0 {
-		log.Fatalf("Image.Height: unable to locate texture height; %v\n", getLastError())
+		log.Fatalln("Image.Height: unable to locate texture height;", getLastError())
 	}
 	return int(height)
 }

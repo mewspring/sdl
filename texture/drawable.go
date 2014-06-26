@@ -61,13 +61,14 @@ func ReadDrawable(src image.Image) (tex Drawable, err error) {
 		return ReadDrawable(fallback(src))
 	}
 
-	// Create a new drawable texture based on the pixels of the src image.
+	// Create a drawable texture based on the pixels of the src image.
 	tex, err = NewDrawable(width, height)
 	if err != nil {
 		return Drawable{}, err
 	}
 	pix := unsafe.Pointer(&rgba.Pix[0])
 	if C.SDL_UpdateTexture(tex.tex, nil, pix, C.int(rgba.Stride)) != 0 {
+		tex.Free()
 		return Drawable{}, fmt.Errorf("texture.ReadDrawable: %v", getLastError())
 	}
 
@@ -83,7 +84,7 @@ func (tex Drawable) Free() {
 func (tex Drawable) Width() int {
 	var width C.int
 	if C.SDL_QueryTexture(tex.tex, nil, nil, &width, nil) != 0 {
-		log.Fatalf("Image.Width: unable to locate texture width; %v\n", getLastError())
+		log.Fatalln("Image.Width: unable to locate texture width;", getLastError())
 	}
 	return int(width)
 }
@@ -92,7 +93,7 @@ func (tex Drawable) Width() int {
 func (tex Drawable) Height() int {
 	var height C.int
 	if C.SDL_QueryTexture(tex.tex, nil, nil, nil, &height) != 0 {
-		log.Fatalf("Image.Height: unable to locate texture height; %v\n", getLastError())
+		log.Fatalln("Image.Height: unable to locate texture height;", getLastError())
 	}
 	return int(height)
 }
@@ -145,31 +146,31 @@ func (dst Drawable) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle
 	default:
 		return fmt.Errorf("Drawable.DrawRect: source type %T not yet supported", src)
 	}
-	return nil
 }
 
 // Fill fills the entire texture with the provided color.
-func (dst Drawable) Fill(c color.Color) {
+func (dst Drawable) Fill(c color.Color) (err error) {
 	ren, err := getRenderer()
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 	if C.SDL_SetRenderTarget(ren, dst.tex) != 0 {
-		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+		return fmt.Errorf("Drawable.Fill: %v", getLastError())
 	}
 	defer C.SDL_SetRenderTarget(ren, nil)
 	r, g, b, a := c.RGBA()
 	if C.SDL_SetRenderDrawColor(ren, C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)) != 0 {
-		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+		return fmt.Errorf("Drawable.Fill: %v", getLastError())
 	}
 	if C.SDL_RenderClear(ren) != 0 {
-		log.Fatalf("Drawable.Fill: %v\n", getLastError())
+		return fmt.Errorf("Drawable.Fill: %v", getLastError())
 	}
+	return nil
 }
 
 // Image returns an image.Image representation of the texture.
 func (tex Drawable) Image() (img image.Image, err error) {
-	// TODO(u): The resulting image is upside-down.
+	// TODO(u): Why is the resulting image upside-down?
 	ren, err := getRenderer()
 	if err != nil {
 		return nil, err
