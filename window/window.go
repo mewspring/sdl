@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"log"
 	"unsafe"
 
 	"github.com/mewmew/sdl/texture"
@@ -38,8 +37,8 @@ type Window struct {
 	ren *C.SDL_Renderer
 }
 
-// winCount represent the number of active windows.
-var winCount int
+// active represent the number of active windows.
+var active int
 
 // Open opens a new window of the specified dimensions and optional window
 // flags. By default the window is not resizeable.
@@ -47,14 +46,14 @@ var winCount int
 // Note: The Close method of the window must be called when finished using it.
 func Open(width, height int, flags ...Flag) (win Window, err error) {
 	// Initialize the video subsystem.
-	if winCount == 0 {
+	if active == 0 {
 		if C.SDL_InitSubSystem(C.SDL_INIT_VIDEO) != 0 {
-			return Window{}, getLastError()
+			return Window{}, fmt.Errorf("window.Open: %v", getLastError())
 		}
 		// TODO(u): Add a goroutine which does event polling and sends the events
 		// to their corresponding window.
 	}
-	winCount++
+	active++
 
 	// Open the window.
 	var cFlags C.Uint32
@@ -68,13 +67,13 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 	// full screen windows.
 	win.win = C.SDL_CreateWindow(title, x, y, C.int(width), C.int(height), cFlags)
 	if win.win == nil {
-		return Window{}, getLastError()
+		return Window{}, fmt.Errorf("window.Open: %v", getLastError())
 	}
 
 	// Create a renderer for the window.
 	win.ren = C.SDL_CreateRenderer(win.win, -1, C.SDL_RENDERER_PRESENTVSYNC)
 	if win.ren == nil {
-		return Window{}, getLastError()
+		return Window{}, fmt.Errorf("window.Open: %v", getLastError())
 	}
 	texture.AddRenderer(unsafe.Pointer(win.ren))
 
@@ -92,8 +91,8 @@ func (win Window) Close() {
 	}
 
 	// Terminate the video subsystem.
-	winCount--
-	if winCount == 0 {
+	active--
+	if active == 0 {
 		C.SDL_QuitSubSystem(C.SDL_INIT_VIDEO)
 	}
 }
@@ -115,14 +114,15 @@ func (win Window) Show(visible bool) {
 
 // ShowCursor displays or hides the mouse cursor depending on the value of
 // visible. It is visible by default.
-func (win Window) ShowCursor(visible bool) {
+func (win Window) ShowCursor(visible bool) (err error) {
 	toggle := C.int(0)
 	if visible {
 		toggle = 1
 	}
 	if C.SDL_ShowCursor(toggle) < 0 {
-		log.Println(getLastError())
+		return fmt.Errorf("Window.ShowCursor: %v", getLastError())
 	}
+	return nil
 }
 
 // Width returns the width of the window.
@@ -146,31 +146,53 @@ func (win Window) Draw(dp image.Point, src wandi.Image) (err error) {
 	return win.DrawRect(dp, src, sr)
 }
 
+// drawRect draws a subset of the src texture, as defined by the source
+// rectangle sr, onto the window starting at the destination point dp.
+func drawRect(ren *C.SDL_Renderer, dp image.Point, src *C.SDL_Texture, sr image.Rectangle) (err error) {
+	width, height := C.int(sr.Dx()), C.int(sr.Dy())
+	srcrect := &C.SDL_Rect{
+		x: C.int(sr.Min.X),
+		y: C.int(sr.Min.Y),
+		w: width,
+		h: height,
+	}
+	dstrect := &C.SDL_Rect{
+		x: C.int(dp.X),
+		y: C.int(dp.Y),
+		w: width,
+		h: height,
+	}
+	if C.SDL_RenderCopy(ren, src, srcrect, dstrect) != 0 {
+		return fmt.Errorf("window.drawRect: %v", getLastError())
+	}
+	return nil
+}
+
 // DrawRect draws a subset of the src image, as defined by the source rectangle
 // sr, onto the window starting at the destination point dp.
 func (win Window) DrawRect(dp image.Point, src wandi.Image, sr image.Rectangle) (err error) {
 	switch srcImg := src.(type) {
 	case texture.Drawable:
-		tex := drawableTexture(srcImg)
-		C.SDL_RenderCopy(win.ren, tex, nil, nil)
+		srcTex := drawableTexture(srcImg)
+		return drawRect(win.ren, dp, srcTex, sr)
 	case texture.Image:
-		tex := imageTexture(srcImg)
-		C.SDL_RenderCopy(win.ren, tex, nil, nil)
+		srcTex := imageTexture(srcImg)
+		return drawRect(win.ren, dp, srcTex, sr)
 	default:
 		return fmt.Errorf("Window.DrawRect: source type %T not yet supported", src)
 	}
-	return nil
 }
 
 // Fill fills the entire window with the provided color.
-func (win Window) Fill(c color.Color) {
+func (win Window) Fill(c color.Color) (err error) {
 	r, g, b, a := c.RGBA()
 	if C.SDL_SetRenderDrawColor(win.ren, C.Uint8(r), C.Uint8(g), C.Uint8(b), C.Uint8(a)) != 0 {
-		log.Fatalf("Window.Fill: %v\n", getLastError())
+		return fmt.Errorf("Window.Fill: %v", getLastError())
 	}
 	if C.SDL_RenderClear(win.ren) != 0 {
-		log.Fatalf("Window.Fill: %v\n", getLastError())
+		return fmt.Errorf("Window.Fill: %v", getLastError())
 	}
+	return nil
 }
 
 // Display displays what has been rendered so far to the window.
