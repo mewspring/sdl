@@ -10,6 +10,8 @@ import (
 	"unsafe"
 )
 
+// TODO(u): Protect active from race conditions.
+
 // active keeps track of all active renderers.
 var active = make(map[unsafe.Pointer]bool)
 
