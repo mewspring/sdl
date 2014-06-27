@@ -50,8 +50,6 @@ func Open(width, height int, flags ...Flag) (win Window, err error) {
 		if C.SDL_InitSubSystem(C.SDL_INIT_VIDEO) != 0 {
 			return Window{}, fmt.Errorf("window.Open: %v", getLastError())
 		}
-		// TODO(u): Add a goroutine which does event polling and sends the events
-		// to their corresponding window.
 	}
 	active++
 
