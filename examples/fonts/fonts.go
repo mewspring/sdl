@@ -6,14 +6,28 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"path"
+	"runtime"
 	"time"
 
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/font"
+	"github.com/mewmew/sdl/texture"
 	"github.com/mewmew/sdl/window"
-	"github.com/mewmew/wandi"
 	"github.com/mewmew/we"
 )
+
+// dataDir is the absolute path to the example source directory.
+var dataDir string
+
+func init() {
+	// Locate the absolute path to the example source directory.
+	var err error
+	dataDir, err = goutil.SrcDir("github.com/mewmew/sdl/examples/data")
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
 
 func main() {
 	err := fonts()
@@ -24,157 +38,118 @@ func main() {
 
 // fonts demonstrates how to render text using TTF fonts.
 func fonts() (err error) {
-	// Open the window.
-	win, err := window.Open(640, 480, window.Resizeable)
+	// Some operating systems require that the main thread is used for both
+	// window creation and event handling. Therefore we lock the goroutine to an
+	// OS thread.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	// Open a window with the specified dimensions.
+	win, err := window.Open(640, 480)
 	if err != nil {
 		return err
 	}
 	defer win.Close()
 
-	// Load font and image resources.
-	err = loadResources()
+	// Load background texture.
+	bg, err := texture.Load(path.Join(dataDir, "bg2.png"))
 	if err != nil {
 		return err
 	}
-	defer freeResources()
+	defer bg.Free()
 
-	// Set the color of the text font to white (the default is black).
-	textFont.SetColor(color.White)
-
-	// Render an image of the text "TTF fonts" using the text font.
-	textImg, err := textFont.Render("TTF fonts")
+	// Load the text TTF font.
+	textFont, err := font.Load(path.Join(dataDir, "Exocet.ttf"))
 	if err != nil {
 		return err
 	}
-	defer textImg.Free()
+	defer textFont.Free()
+
+	// Create a new graphical text entry based on the Exocet TTF font and
+	// initialize its text to "TTF fonts", its font size to 32 (the default is
+	// 12) and its color to white (the default is black).
+	text, err := font.NewText(textFont, "TTF fonts", 32, color.White)
+	if err != nil {
+		return err
+	}
+	defer text.Free()
+
+	// Load the fps TTF font.
+	fpsFont, err := font.Load(path.Join(dataDir, "DejaVuSansMono.ttf"))
+	if err != nil {
+		return err
+	}
+	defer fpsFont.Free()
+
+	// Create a graphical FPS text entry. The text of this graphical text entry
+	// will be updated repeatedly using SetText.
+	fps, err := font.NewText(fpsFont, 14, color.White)
+	if err != nil {
+		return err
+	}
+	defer fps.Free()
 
 	// start and frames will be used to calculate the average FPS of the
 	// application.
 	start := time.Now()
 	frames := 0.0
 
-	// Update and event loop.
+	// 60 FPS
+	ticker := time.NewTicker(time.Second / 60)
+
+	// Drawing and event loop.
 	for {
-		// Render the background image and the rendered text onto the window.
-		err = render(win, textImg)
+		// Cap the FPS.
+		<-ticker.C
+
+		// Fill the window with white color.
+		win.Fill(color.White)
+
+		// Draw the entire background texture onto the window.
+		err = win.Draw(image.ZP, bg)
 		if err != nil {
 			return err
 		}
 
-		// Render the average FPS onto the window.
-		err = renderFPS(win, start, frames)
+		// Draw the entire text onto the window starting the destination point
+		// (420, 12).
+		dp := image.Pt(420, 12)
+		err = win.Draw(dp, text)
 		if err != nil {
 			return err
 		}
 
-		// Display window updates on screen.
-		err = win.Update()
+		// Update the text of the FPS text entry.
+		fps.SetText(getFPS(start, frames))
+
+		// Draw the entire FPS text entry onto the screen starting at the
+		// destination point (8, 4).
+		dp = image.Pt(8, 4)
+		err = win.Draw(dp, fps)
 		if err != nil {
 			return err
 		}
+
+		// Display what has been rendered so far to the window.
+		win.Display()
 		frames++
 
 		// Poll events until the event queue is empty.
 		for e := win.PollEvent(); e != nil; e = win.PollEvent() {
-			fmt.Printf("%T event: %v\n", e, e)
+			fmt.Printf("%T: %v\n", e, e)
 			switch e.(type) {
 			case we.Close:
-				// Close the application.
+				// Close the window.
 				return nil
 			}
 		}
-
-		// Cap refresh rate at 500 FPS.
-		time.Sleep(time.Second / 500)
 	}
-}
-
-// render renders the background image and the rendered text onto the window.
-func render(win wandi.Window, textImg *window.Image) (err error) {
-	// Draw the entire background image onto the screen starting at the top left
-	// point (0, 0).
-	dp := image.ZP
-	err = win.Draw(dp, bgImg)
-	if err != nil {
-		return err
-	}
-
-	// Draw the entire text image onto the screen starting at the destination
-	// point (420, 12).
-	dp = image.Pt(420, 12)
-	err = win.Draw(dp, textImg)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// renderFPS renders the average FPS to the upper left corner of the window.
-func renderFPS(win wandi.Window, start time.Time, frames float64) (err error) {
-	fps := getFPS(start, frames)
-	fpsImg, err := fpsFont.Render(fps)
-	if err != nil {
-		return err
-	}
-	// Draw the entire fps image onto the screen starting at the destination
-	// point (8, 4).
-	dp := image.Pt(8, 4)
-	win.Draw(dp, fpsImg)
-	return nil
 }
 
 // getFPS returns the average FPS as a string, based on the provided start time
 // and frame count.
 func getFPS(start time.Time, frames float64) (text string) {
-	// Total runtime in seconds.
-	seconds := float64(time.Since(start)) / float64(time.Second)
 	// Average FPS.
-	fps := frames / seconds
+	fps := frames / time.Since(start).Seconds()
 	return fmt.Sprintf("FPS: %.2f", fps)
-}
-
-// Background image.
-var bgImg *window.Image
-
-// TTF fonts.
-var fpsFont, textFont *font.Font
-
-// loadResources loads font and image resources.
-func loadResources() (err error) {
-	dataDir, err := goutil.SrcDir("github.com/mewmew/sdl/examples/fonts/data")
-	if err != nil {
-		return err
-	}
-
-	// Load background image.
-	bgImg, err = window.LoadImage(dataDir + "/bg.png")
-	if err != nil {
-		return err
-	}
-
-	// Load FPS font.
-	fpsFont, err = font.Load(dataDir+"/DejaVuSansMono.ttf", 14)
-	if err != nil {
-		return err
-	}
-	fpsFont.SetColor(color.White)
-	// Use the blended rendering mode for the font.
-	fpsFont.SetMode(font.Blended)
-
-	// Load text font.
-	textFont, err = font.Load(dataDir+"/Exocet.ttf", 32)
-	if err != nil {
-		return err
-	}
-	textFont.SetMode(font.Blended)
-
-	return nil
-}
-
-// freeResources frees the memory of font and image resources.
-func freeResources() {
-	textFont.Free()
-	fpsFont.Free()
-	bgImg.Free()
 }

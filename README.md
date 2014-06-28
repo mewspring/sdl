@@ -4,21 +4,13 @@ WIP
 This project is a *work in progress*. The implementation is *incomplete* and
 subject to change. The documentation can be inaccurate.
 
-win
-===
+sdl
+====
 
-Package win provides the core functionality required for window creation,
-drawing and event handling. The window events are defined in a dedicated package
-located at:
+This project implements window creation, event handling and image drawing using
+[SDL][] version 2.0.
 
-- [github.com/mewmew/we][]
-
-The library uses a small subset of the features provided by [SDL][libsdl]
-version 2.0. Support for multiple windows has intentionally been left out to
-simplify the API.
-
-[github.com/mewmew/we]: https://github.com/mewmew/we
-[libsdl]: http://www.libsdl.org/
+[SDL]: https://www.libsdl.org/
 
 Documentation
 -------------
@@ -26,68 +18,43 @@ Documentation
 Documentation provided by GoDoc.
 
 - sdl
-   - [audio][sdl/audio]: provides support for audio playback.
-   - [font][sdl/font]: handles text rendering based on the size, style and color
-   of fonts.
-      - [fontutil][sdl/font/fontutil]: provides font utility functions for word
-      wrapping.
-   - [win][sdl/win]: handles window creation, drawing and events.
-- [we][]: specifies the types and constants commonly used for window events.
+   - [font][sdl/font]: handles graphical text entries with customizable font
+   size, style and color.
+   - [texture][sdl/texture]: handles hardware accelerated image drawing.
+   - [window][sdl/window]: handles window creation, drawing and events.
 
-[sdl/audio]: http://godoc.org/github.com/mewmew/sdl/audio
 [sdl/font]: http://godoc.org/github.com/mewmew/sdl/font
-[sdl/font/fontutil]: http://godoc.org/github.com/mewmew/sdl/font/fontutil
-[sdl/win]: http://godoc.org/github.com/mewmew/sdl/win
-[we]: http://godoc.org/github.com/mewmew/we
-
-Installation
-------------
-
-Install the [SDL][libsdl] library version 2.0 and run:
-
-	go get github.com/mewmew/sdl/win
-
-Install the [SDL_ttf][] library version 2.0 and run:
-
-	go get github.com/mewmew/sdl/font
-
-[SDL_ttf]: http://www.libsdl.org/projects/SDL_ttf/
-
-Install the [SDL_mixer][] library version 2.0 and run:
-
-	go get github.com/mewmew/sdl/audio
-
-[SDL_mixer]: http://www.libsdl.org/projects/SDL_mixer/
+[sdl/texture]: http://godoc.org/github.com/mewmew/sdl/texture
+[sdl/window]: http://godoc.org/github.com/mewmew/sdl/window
 
 Examples
 --------
 
-The `simple` command demonstrates how to draw surfaces using the [Draw][] and
-[DrawRect][] methods. It also gives an example of a basic event loop.
+### tiny
 
-	go get github.com/mewmew/sdl/examples/simple
+The [tiny][examples/tiny] command demonstrates how to render images onto the
+window using the [Draw][sdl/window#Window.Draw] and
+[DrawRect][sdl/window#Window.DrawRect] methods. It also gives an example of a
+basic event loop.
 
-![Screenshot - simple](https://raw.github.com/mewmew/sdl/master/examples/simple/simple.png)
+	go get github.com/mewmew/sdl/examples/tiny
 
-[Draw]: http://godoc.org/github.com/mewmew/sdl/win#Image.Draw
-[DrawRect]: http://godoc.org/github.com/mewmew/sdl/win#Image.DrawRect
+![Screenshot - tiny](https://raw.github.com/mewmew/sdl/master/examples/tiny/tiny.png)
 
-The `fonts` command demonstrates how to render text using TTF fonts.
+[examples/tiny]: https://github.com/mewmew/sdl/blob/master/examples/tiny/tiny.go#L37
+[sdl/window#Window.Draw]: http://godoc.org/github.com/mewmew/sdl/window#Window.Draw
+[sdl/window#Window.DrawRect]: http://godoc.org/github.com/mewmew/sdl/window#Window.DrawRect
+
+### fonts
+
+The [fonts][examples/fonts] command demonstrates how to render text using TTF
+fonts.
 
 	go get github.com/mewmew/sdl/examples/fonts
 
 ![Screenshot - fonts](https://raw.github.com/mewmew/sdl/master/examples/fonts/fonts.png)
 
-The `boxes` command demonstrates how to render text within the confines of a
-fixed width box.
-
-	go get github.com/mewmew/sdl/examples/boxes
-
-![Screenshot - boxes](https://raw.github.com/mewmew/sdl/master/examples/boxes/boxes.png)
-
-The `play` command demonstrates how to open audio files and play sounds.
-
-	go get github.com/mewmew/sdl/examples/play
+[examples/fonts]: https://github.com/mewmew/sdl/blob/master/examples/fonts/fonts.go#L39
 
 public domain
 -------------

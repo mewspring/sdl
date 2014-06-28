@@ -3,6 +3,7 @@ package main
 
 import (
 	"log"
+	"path"
 
 	"github.com/mewkiz/pkg/goutil"
 	"github.com/mewmew/sdl/audio"
@@ -21,13 +22,13 @@ func main() {
 
 // play demonstrates how to open audio files and play sounds.
 func play() (err error) {
-	dataDir, err := goutil.SrcDir("github.com/mewmew/sdl/examples/play/data")
+	dataDir, err := goutil.SrcDir("github.com/mewmew/sdl/examples/data")
 	if err != nil {
 		return err
 	}
 
 	// Load the sound file.
-	s, err := audio.Open(dataDir + "/birds.ogg")
+	s, err := audio.Open(path.Join(dataDir, "birds.ogg"))
 	if err != nil {
 		return err
 	}

@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"path"
 	"time"
 
 	"github.com/mewkiz/pkg/goutil"
@@ -45,7 +46,7 @@ func boxes() (err error) {
 	}
 
 	// Load the background image.
-	bg, err := window.LoadImage(dataDir + "/bg.png")
+	bg, err := window.LoadImage(path.Join(dataDir, "bg.png"))
 	if err != nil {
 		return err
 	}
@@ -53,14 +54,14 @@ func boxes() (err error) {
 
 	// Load the gopher image.
 	// ref: http://img.stanleylieber.com/?tags=golang
-	goper, err := window.LoadImage(dataDir + "/gopher.png")
+	goper, err := window.LoadImage(path.Join(dataDir, "gopher.png")
 	if err != nil {
 		return err
 	}
 	defer goper.Free()
 
 	// Load the font.
-	f, err := font.Load(dataDir+"/DejaVuSerif.ttf", 16)
+	f, err := font.Load(path.Join(dataDir, "DejaVuSerif.ttf"), 16)
 	if err != nil {
 		return err
 	}
