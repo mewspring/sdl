@@ -39,7 +39,7 @@ basic event loop.
 
 	go get github.com/mewmew/sdl/examples/tiny
 
-![Screenshot - tiny](https://raw.github.com/mewmew/sdl/master/examples/tiny/tiny.png)
+![Screenshot - tiny](https://raw.githubusercontent.com/mewmew/sdl/master/examples/tiny/tiny.png)
 
 [examples/tiny]: https://github.com/mewmew/sdl/blob/master/examples/tiny/tiny.go#L37
 [sdl/window#Window.Draw]: http://godoc.org/github.com/mewmew/sdl/window#Window.Draw
@@ -52,7 +52,7 @@ fonts.
 
 	go get github.com/mewmew/sdl/examples/fonts
 
-![Screenshot - fonts](https://raw.github.com/mewmew/sdl/master/examples/fonts/fonts.png)
+![Screenshot - fonts](https://raw.githubusercontent.com/mewmew/sdl/master/examples/fonts/fonts.png)
 
 [examples/fonts]: https://github.com/mewmew/sdl/blob/master/examples/fonts/fonts.go#L39
 
